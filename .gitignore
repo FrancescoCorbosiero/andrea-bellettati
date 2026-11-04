@@ -1,0 +1,20 @@
+# dipendenze
+node_modules/
+
+# build di Next.js
+.next/
+out/
+next-env.d.ts
+*.tsbuildinfo
+
+# ambiente
+.env
+.env.*
+!.env.example
+
+# varie
+.DS_Store
+npm-debug.log*
+/coverage
+/test-results
+/playwright-report
