@@ -1,7 +1,151 @@
-# Andrea Bellettati — sito
+# Andrea Bellettati — sito (versione 2)
 
-Sito di Andrea Bellettati, consulente in comportamento e nutrizione per cani e gatti.
-Versione 2: Next.js + Konsta UI, costruita usando come specifica il sito statico Astro
-([comunicazionecinofila](https://github.com/FrancescoCorbosiero/comunicazionecinofila)).
+Sito di **Andrea Bellettati**, consulente in comportamento e nutrizione per cani e
+gatti. Due pubblici, un'identità: le famiglie (questionario per la **consulenza
+gratuita** di 45 minuti) e chi vuole lavorare nel benessere animale con
+**TeamNutrizione** ("Lavora con noi").
 
-Il lavoro è in corso su un branch dedicato.
+È la versione 2 del sito statico Astro
+[`comunicazionecinofila`](https://github.com/FrancescoCorbosiero/comunicazionecinofila),
+usato come **specifica**: stessi testi (ripuliti), stessa struttura, stesso brand
+("Branco", in materiale vetro). Cambia il modo in cui si usa: è un sito **ibrido**,
+pagine editoriali + parti da **app** costruite con [Konsta UI](https://konstaui.com)
+(questionari a passi con widget pensati per cani e gatti, barra in basso e menu a
+foglio su telefono, ricerca del blog). È anche la base della futura **web app**
+con area clienti: vedi [`docs/web-app.md`](docs/web-app.md).
+
+## Comandi
+
+> **Node ≥ 22.12** (`.nvmrc`).
+
+```bash
+npm install          # dipendenze
+npm run dev          # sviluppo su http://localhost:3000
+npm run build        # build di produzione (.next/standalone)
+npm run start        # avvia la build
+npm run check        # tipi (next typegen + tsc) + ESLint
+```
+
+Per provare i questionari senza mandare email vere:
+
+```bash
+SES_DRY_RUN=true npm run dev
+```
+
+## Stack
+
+| | |
+|---|---|
+| Framework | **Next.js 16** (App Router, Turbopack) + **React 19** + TypeScript |
+| Stile | **Tailwind 4** con il Brand System in `src/app/globals.css` (palette, font, materiale vetro) |
+| Parti "app" | **Konsta UI 5** (tema iOS, anche lo stile vetro di iOS 26) · `react-modal-sheet` per i fogli · `sonner` per gli avvisi |
+| Movimento | CSS (entrate, comparsa allo scroll), `motion` per il pannello desktop |
+| Contenuti | Markdown in `src/content/` (gray-matter + unified), schema zod |
+| Email | AWS SES v2 da `/api/richiesta` |
+| Deploy | Docker (Next standalone) dietro **Caddy** (caddy-docker-proxy) |
+
+## Struttura
+
+```
+src/
+  app/
+    layout.tsx               # html, font, header, footer, barra in basso, JSON-LD del sito
+    globals.css              # ⭐ Brand System: token, vetro, bottoni, lastre, testo lungo, tema Konsta
+    page.tsx                 # home
+    consulenza-gratuita/     # pagina della consulenza con il questionario in pagina
+    lavora-con-noi/          # pagina del Team con il flusso "Entra nel Team"
+    approccio/ chi-sono/ servizi/
+    articoli/ [slug]/        # blog (ricerca + categorie) e articolo
+    eventi/ [slug]/          # eventi, pagina evento, calendario.ics
+    api/richiesta/route.ts   # invio dei questionari (SES)
+    sitemap.ts robots.ts manifest.ts rss.xml/ not-found.tsx
+  components/
+    app/                     # guscio da app: AppProvider (fogli, cronologia), MenuSheet, RevealObserver
+    flows/                   # i due questionari Konsta: useFlow, ConsultFlow, TeamFlow, fields (widget)
+    layout/                  # SiteHeader, MobileTabbar (Konsta), SiteFooter, Logo
+    home/ blog/ events/ team/ ui/ seo/
+  content/articoli/*.md      # articoli (lo slug è il nome del file)
+  content/eventi/*.md        # eventi
+  lib/
+    site.ts                  # ⭐ contatti, numeri (STATS), link
+    forms.ts                 # campi, opzioni e regole dei questionari (condivisi browser/server)
+    content.ts               # lettura dei Markdown
+    emails.ts mail.ts rateLimit.ts seo.ts dates.ts
+  assets/                    # foto (next/image) · fonts/ font self-hosted
+docs/                        # spec, decisioni, web app futura
+```
+
+## Contenuti: articoli ed eventi
+
+Un file Markdown per articolo in `src/content/articoli/` (lo slug è il nome del
+file). Campi del frontmatter:
+
+```yaml
+title: "Umido o crocchette? Come leggere davvero una dieta"
+date: 2026-07-05
+excerpt: "Una frase che compare nelle card e nei motori di ricerca."
+category: "Alimentazione"          # Alimentazione · Comportamento · Osservazione · Gatto · Benessere
+status: "published"                # oppure "coming-soon" (card "In arrivo")
+featured: false                    # in evidenza in cima al blog
+externalUrl: "https://…"           # facoltativo: la card porta lì (es. Instagram)
+cover: "/foto/nome.jpg"            # facoltativo: foto in /public; senza, blocco colorato
+```
+
+Eventi in `src/content/eventi/`: `title`, `excerpt`, `date` (con ora e fuso, es.
+`2026-02-11T21:00:00+01:00`) oppure `whenLabel` ("Su richiesta"), `status`
+(`upcoming`, `coming-soon`, `on-request`, `past`), `statusLabel`, `duration`,
+`locationLabel`, `collab`, `tags`, `reserveWaText` (testo WhatsApp di "Riserva il
+tuo posto"), `externalUrl` / `internalUrl`. Un evento `upcoming` con la data
+passata diventa "già svolto" da solo; le pagine con le date si rigenerano ogni 12
+ore.
+
+## Questionari ed email
+
+- **Consulenza gratuita** (`ConsultFlow`): animale (cane o gatto, nome sulla
+  medaglietta, età, taglia) → ciotola e preoccupazioni a chip → contatti, orario
+  preferito, WhatsApp sì/no → scheda riepilogo → invio. Su telefono si apre come
+  foglio dal basso da qualsiasi link a `/consulenza-gratuita#questionario`, su
+  desktop come pannello; in `/consulenza-gratuita` è dentro la pagina.
+- **Entra nel Team** (`TeamFlow`): chi sei → percorso → progetto → riepilogo.
+- Invio: `POST /api/richiesta` → email ad Andrea (testo + HTML, con il link
+  WhatsApp per rispondere) e conferma a chi ha scritto, se ha lasciato l'email.
+  Chi sceglie "mandala su WhatsApp" la invia comunque anche per email, in silenzio:
+  il contatto non si perde.
+- Protezioni: limite di richieste per IP, campo trappola, tempo minimo di
+  compilazione, convalida zod uguale in browser e server.
+- Senza SES configurato la richiesta non parte e il questionario offre WhatsApp,
+  l'app di posta (testo già scritto) e il telefono. `GET /api/richiesta` dice se
+  l'invio è configurato.
+
+Variabili in [`.env.example`](.env.example): `AWS_REGION`, `AWS_ACCESS_KEY_ID`,
+`AWS_SECRET_ACCESS_KEY`, `SES_FROM` (mittente verificato), `SES_TO`,
+`SES_CONFIGURATION_SET`, `SES_DRY_RUN`.
+
+## Deploy
+
+Come il sito Astro: un container dietro Caddy, che prende i certificati da solo.
+
+```bash
+docker network create caddy        # una volta sola, se non esiste
+cp .env.example .env               # dominio + credenziali SES
+docker compose up -d --build
+```
+
+`NEXT_PUBLIC_SITE_URL` (URL assoluti, sitemap, Open Graph) entra al build come
+argomento: cambiarlo richiede `--build`.
+
+## Brand e vetro, in breve
+
+- Palette, font e materiali sono in `src/app/globals.css`: `.btn` (lastra lucida
+  col lampo al passaggio, varianti `btn-dark`, `btn-cream`, `btn-ghost`),
+  `.slab` (card di vetro, varianti di colore), `.eyebrow`, `.pill`, `.ticks`,
+  `.icon-btn`, `.prose-ab` (articoli). Sui fondi scuri si aggiunge `.on-dark`: i
+  bottoni ghost e le icone diventano vetro fumé.
+- Titoli `h1`/`h2` in Anton maiuscolo, `h3` in Bricolage, la parola a mano in
+  `.script` (Caveat).
+- Konsta prende il font e il verde del brand da `--font-ios` e
+  `--color-brand-primary`.
+
+Altro: [`docs/spec.md`](docs/spec.md) (pagine e regole dei testi),
+[`docs/decisioni.md`](docs/decisioni.md) (perché queste scelte),
+[`docs/web-app.md`](docs/web-app.md) (area clienti e pannello, il futuro).
