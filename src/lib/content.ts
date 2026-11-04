@@ -61,17 +61,10 @@ const eventSchema = z.object({
 
 export type ArticleData = z.infer<typeof articleSchema>;
 export type EventData = z.infer<typeof eventSchema>;
-export type Heading = { id: string; text: string };
 
-export type Article = ArticleData & {
-  slug: string;
-  body: string;
-  minutes: number;
-  words: number;
-  /** Ha una pagina sul sito (pubblicato e senza link esterno). */
-  onSite: boolean;
-};
-export type EventEntry = EventData & { slug: string; body: string; onSite: boolean };
+export type { Article, EventEntry, Heading } from './content-shared';
+export { CATEGORY_TONE } from './content-shared';
+import type { Article, EventEntry, Heading } from './content-shared';
 
 function readDir<T>(dir: string, schema: z.ZodType<T>): (T & { slug: string; body: string })[] {
   const full = path.join(ROOT, dir);
@@ -109,6 +102,10 @@ export const getArticle = (slug: string) => getArticles().find((a) => a.slug ===
 export const getEvents = cache((): EventEntry[] =>
   readDir('eventi', eventSchema)
     .map((e) => ({ ...e, onSite: !e.externalUrl && !e.internalUrl }))
+    // Un evento "in programma" con la data già passata diventa "già svolto" da solo.
+    .map((e) =>
+      e.status === 'upcoming' && e.date && e.date.getTime() < Date.now() ? { ...e, status: 'past' as const, statusLabel: 'Già svolto' } : e,
+    )
     .sort((a, b) => {
       const rank = (e: EventEntry) => ({ upcoming: 0, 'coming-soon': 1, 'on-request': 2, past: 3 })[e.status];
       return rank(a) - rank(b) || (a.date?.getTime() ?? Infinity) - (b.date?.getTime() ?? Infinity);
@@ -164,12 +161,3 @@ export async function renderMarkdown(md: string): Promise<{ html: string; headin
 export function categories(articles: Article[]): string[] {
   return [...new Set(articles.map((a) => a.category))];
 }
-
-/** Ogni categoria ha il suo colore: nel blog si riconoscono a colpo d'occhio. */
-export const CATEGORY_TONE: Record<string, 'peach' | 'sage' | 'mist' | 'ink'> = {
-  Alimentazione: 'peach',
-  Comportamento: 'sage',
-  Osservazione: 'ink',
-  Gatto: 'mist',
-  Benessere: 'mist',
-};

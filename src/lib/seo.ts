@@ -65,19 +65,20 @@ export function pageMetadata({
   imageAlt,
   type = 'website',
 }: {
-  title: string;
+  title: string | { absolute: string };
   description: string;
   path: string;
   image?: string;
   imageAlt?: string;
   type?: 'website' | 'article';
 }): Metadata {
-  const images = image ? [{ url: image, alt: imageAlt ?? title }] : undefined;
+  const plain = typeof title === 'string' ? title : title.absolute;
+  const images = image ? [{ url: image, alt: imageAlt ?? plain }] : undefined;
   return {
     title,
     description,
     alternates: { canonical: path },
-    openGraph: { type, url: path, title, description, images, locale: 'it_IT', siteName: SITE_NAME },
-    twitter: { card: 'summary_large_image', title, description, images: image ? [image] : undefined },
+    openGraph: { type, url: path, title: plain, description, images, locale: 'it_IT', siteName: SITE_NAME },
+    twitter: { card: 'summary_large_image', title: plain, description, images: image ? [image] : undefined },
   };
 }
