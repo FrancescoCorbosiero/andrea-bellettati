@@ -5,13 +5,14 @@ import dynamic from 'next/dynamic';
 import { usePathname } from 'next/navigation';
 import { KonstaProvider } from 'konsta/react';
 import type { ConsultDraft } from '@/lib/forms';
-import { lockScroll } from '@/lib/motion/core';
+import { lockScroll } from '@/lib/motion/scroll';
 
-/* Il questionario e il menu si caricano solo quando servono (o quando la
-   pagina è ferma): chi legge e basta non scarica il codice dei form. */
+/* Il questionario e il menu si caricano solo quando servono (al primo segno
+   di intenzione, vedi sotto): chi legge e basta non scarica il codice dei form. */
 const loadFlow = () => import('@/components/flows/ConsultOverlay');
+const loadMenu = () => import('./MenuSheet');
 const ConsultOverlay = dynamic(loadFlow, { ssr: false });
-const MenuSheet = dynamic(() => import('./MenuSheet'), { ssr: false });
+const MenuSheet = dynamic(loadMenu, { ssr: false });
 const Toaster = dynamic(() => import('sonner').then((m) => m.Toaster), { ssr: false });
 
 type AppApi = {
@@ -126,12 +127,36 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return () => document.removeEventListener('click', onClick, true);
   }, [openConsult]);
 
-  // Il codice del questionario arriva a pagina ferma: il primo tocco lo apre subito.
+  // Il codice dei fogli (questionario, menu) arriva al primo segno di
+  // intenzione: il puntatore sopra il link, il dito che tocca, il focus.
+  // Così non pesa su chi legge e basta, e sulla pagina della consulenza
+  // (che ha il questionario in pagina) non arriva proprio.
   useEffect(() => {
-    const idle = window.requestIdleCallback ?? ((cb: () => void) => window.setTimeout(cb, 2500));
-    const cancel = window.cancelIdleCallback ?? window.clearTimeout;
-    const id = idle(() => void loadFlow().catch(() => {}));
-    return () => cancel(id);
+    let flow = false;
+    let menu = false;
+    const warm = (e: Event) => {
+      const el = e.target instanceof Element ? e.target : null;
+      if (!el) return;
+      if (!menu && el.closest('[data-menu-button]')) {
+        menu = true;
+        void loadMenu().catch(() => (menu = false));
+        return;
+      }
+      if (flow || window.location.pathname === CONSULT_PATH) return;
+      const link = el.closest<HTMLAnchorElement>('a[href*="#questionario"]');
+      if (!link || new URL(link.href, window.location.href).pathname !== CONSULT_PATH) return;
+      flow = true;
+      void loadFlow().catch(() => (flow = false));
+    };
+    const opts = { capture: true, passive: true } as const;
+    document.addEventListener('pointerover', warm, opts);
+    document.addEventListener('pointerdown', warm, opts);
+    document.addEventListener('focusin', warm, opts);
+    return () => {
+      document.removeEventListener('pointerover', warm, opts);
+      document.removeEventListener('pointerdown', warm, opts);
+      document.removeEventListener('focusin', warm, opts);
+    };
   }, []);
 
   const consultShown = sheet === 'consult' && session?.path === pathname;

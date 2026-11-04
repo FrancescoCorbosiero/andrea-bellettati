@@ -139,45 +139,47 @@ export default function ApproccioPage() {
       </section>
 
       {/* TRE FONTI, UNA DIREZIONE */}
-      <section className="section overflow-hidden lg:flex lg:min-h-svh lg:items-center" aria-labelledby="sources-title" data-venn>
-        <div className="wrap grid items-center gap-14 lg:grid-cols-2">
-          <div className="flex flex-col items-start gap-5">
-            <SectionHead id="sources-title" eyebrow="Come lavoro" title="Tre fonti," script="una direzione." />
-            <p className="text-[17.5px] leading-relaxed text-ink-soft">
-              Lavoro sull&apos;equilibrio interno dell&apos;animale mettendo insieme tre cose: ciò che la letteratura scientifica
-              dice, ciò che osservo nel singolo soggetto, e il contesto reale della famiglia. Una dieta perfetta sulla carta non
-              serve a nulla se non entra nella vita di tutti i giorni.
-            </p>
-            <p className="text-[17.5px] leading-relaxed text-ink-soft">
-              E il percorso non si chiude con la consulenza: seguo personalmente ogni caso nel tempo, e dietro ogni scelta c&apos;è
-              il confronto con TeamNutrizione, il Team di professionisti con cui condivido un metodo di lavoro comune.
-            </p>
-          </div>
-          <div className="relative mx-auto aspect-square w-full max-w-[min(520px,78svh)]" data-venn-stage aria-label="La scienza, l'animale e la famiglia si incontrano in una direzione" role="img">
-            {/* Due strati con la stessa geometria: prima i cerchi, poi le
-                etichette. Mentre convergono (data-venn) ogni cerchio è un
-                livello a sé: così nessun cerchio copre le etichette. */}
-            {SOURCES.map((s) => (
-              <div
-                key={s.title}
-                data-venn-circle
-                data-from={s.from}
-                className={`absolute h-[60%] w-[60%] rounded-full border border-white/70 ${s.pos}`}
-                style={{ background: s.bg, boxShadow: 'inset 0 1px 0 rgb(255 255 255 / 0.7), inset 0 0 40px rgb(255 255 255 / 0.2)' }}
-              />
-            ))}
-            {SOURCES.map((s) => (
-              <div key={s.title} data-venn-circle data-from={s.from} className={`pointer-events-none absolute flex h-[60%] w-[60%] flex-col ${s.pos} ${s.align}`}>
-                <b className="text-[clamp(22px,2.6vw,30px)] font-[800] leading-none tracking-[-0.03em] text-ink">{s.title}</b>
-                <span className="mt-1 max-w-[9em] text-[13.5px] font-[600] leading-tight text-ink-soft">{s.sub}</span>
+      <section className="section overflow-clip lg:flex lg:min-h-svh lg:items-center" aria-labelledby="sources-title" data-venn>
+        <div data-pin-stage className="w-full">
+          <div className="wrap grid items-center gap-14 lg:grid-cols-2">
+            <div className="flex flex-col items-start gap-5">
+              <SectionHead id="sources-title" eyebrow="Come lavoro" title="Tre fonti," script="una direzione." />
+              <p className="text-[17.5px] leading-relaxed text-ink-soft">
+                Lavoro sull&apos;equilibrio interno dell&apos;animale mettendo insieme tre cose: ciò che la letteratura scientifica
+                dice, ciò che osservo nel singolo soggetto, e il contesto reale della famiglia. Una dieta perfetta sulla carta non
+                serve a nulla se non entra nella vita di tutti i giorni.
+              </p>
+              <p className="text-[17.5px] leading-relaxed text-ink-soft">
+                E il percorso non si chiude con la consulenza: seguo personalmente ogni caso nel tempo, e dietro ogni scelta c&apos;è
+                il confronto con TeamNutrizione, il Team di professionisti con cui condivido un metodo di lavoro comune.
+              </p>
+            </div>
+            <div className="relative mx-auto aspect-square w-full max-w-[min(520px,78svh)]" data-venn-stage aria-label="La scienza, l'animale e la famiglia si incontrano in una direzione" role="img">
+              {/* Due strati con la stessa geometria: prima i cerchi, poi le
+                  etichette. Mentre convergono (data-venn) ogni cerchio è un
+                  livello a sé: così nessun cerchio copre le etichette. */}
+              {SOURCES.map((s) => (
+                <div
+                  key={s.title}
+                  data-venn-circle
+                  data-from={s.from}
+                  className={`absolute h-[60%] w-[60%] rounded-full border border-white/70 ${s.pos}`}
+                  style={{ background: s.bg, boxShadow: 'inset 0 1px 0 rgb(255 255 255 / 0.7), inset 0 0 40px rgb(255 255 255 / 0.2)' }}
+                />
+              ))}
+              {SOURCES.map((s) => (
+                <div key={s.title} data-venn-circle data-from={s.from} className={`pointer-events-none absolute flex h-[60%] w-[60%] flex-col ${s.pos} ${s.align}`}>
+                  <b className="text-[clamp(22px,2.6vw,30px)] font-[800] leading-none tracking-[-0.03em] text-ink">{s.title}</b>
+                  <span className="mt-1 max-w-[9em] text-[13.5px] font-[600] leading-tight text-ink-soft">{s.sub}</span>
+                </div>
+              ))}
+              <div data-venn-core className="absolute left-1/2 top-[52%] z-20 grid h-[27%] w-[27%] -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border border-white/30 bg-ink text-center shadow-[inset_0_1px_0_rgb(255_255_255/0.24),0_14px_30px_-12px_rgb(208_103_63/0.7)]">
+                <span className="font-[family-name:var(--font-script)] text-[clamp(20px,2.4vw,28px)] leading-[0.95] text-peach">
+                  una
+                  <br />
+                  direzione
+                </span>
               </div>
-            ))}
-            <div data-venn-core className="absolute left-1/2 top-[52%] z-20 grid h-[27%] w-[27%] -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border border-white/30 bg-ink text-center shadow-[inset_0_1px_0_rgb(255_255_255/0.24),0_14px_30px_-12px_rgb(208_103_63/0.7)]">
-              <span className="font-[family-name:var(--font-script)] text-[clamp(20px,2.4vw,28px)] leading-[0.95] text-peach">
-                una
-                <br />
-                direzione
-              </span>
             </div>
           </div>
         </div>

@@ -534,6 +534,10 @@ h2 .script::after {
   .btn:hover .btn-roll::after { translate: 0 0; }
 }
 
+/* La zampina della barra dei passi (StepBar): salta a ogni passo. */
+@keyframes paw-hop { 0%, 100% { translate: 0 0; } 50% { translate: 0 -14px; } }
+@media (prefers-reduced-motion: no-preference) { .paw-hop { animation: paw-hop 0.7s ease-in-out; } }
+
 /* Coriandoli: zampe, cuori e ossa sopra a tutto. */
 .fx-layer { position: fixed; inset: 0; z-index: 9999; pointer-events: none; overflow: hidden; }
 .fx-bit { position: absolute; display: block; will-change: transform, opacity; }
@@ -598,14 +602,27 @@ h2 .script::after {
 /* FAQ (details[data-accordion]): mentre si chiude l'icona torna subito "+". */
 .faq[data-closing] summary i { rotate: 0deg; background-color: rgb(255 255 255 / 0.75); }
 
+/* Sezioni ferme mentre scorri (data-strike, data-venn e data-stories su
+   desktop): CSS sticky, non i pin di ScrollTrigger. La sezione si allunga
+   della corsa (--pin-run, la mette il motore) e il suo palco resta
+   attaccato allo schermo mentre la si attraversa: niente nodi aggiunti,
+   niente ricalcolo di tutta la pagina. La corsa è un ::after dentro la
+   sezione (lo sticky si muove solo nel contenuto del genitore: padding e
+   margini non contano). Le sezioni usano overflow: clip (hidden fermerebbe
+   lo sticky). */
+.is-pinned { display: block; padding-block: 0; }
+.is-pinned > [data-pin-stage] { position: sticky; top: 0; min-height: 100svh; display: flex; flex-direction: column; justify-content: center; }
+.is-pinned::after { content: ''; display: block; height: var(--pin-run, 0px); }
+
 /* Le stories nel telefono (data-stories): con lo script le slide vivono
    dentro lo schermo, una sopra l'altra; il ritaglio arrotondato nasconde
-   quella in arrivo e quella che se ne va. Senza script: una lista di card. */
+   quella in arrivo e quella che se ne va. Senza script: una lista di card.
+   Su telefono resta fermo solo il telefono, al centro dello schermo. */
 .is-story .story-slides { position: relative; display: block; height: min(50svh, 440px); clip-path: inset(0 round 26px); }
 .is-story .story-slide { position: absolute; inset: 0; transform-origin: 50% 60%; }
+.is-story-phone [data-story-phone] { position: sticky; top: var(--phone-top, 12px); }
+.is-story-phone [data-story-dock]::after { content: ''; display: block; height: var(--pin-run, 0px); }
 @media (min-width: 1024px) {
-  .is-story { min-height: 100svh; display: flex; align-items: center; }
-  .is-story > .wrap { width: 100%; }
   .is-story .story-slides { height: min(58svh, 520px); }
 }
 

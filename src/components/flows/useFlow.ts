@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { clearDraft, readDraft, sendRequest, writeDraft } from '@/lib/send';
 import type { RequestPayload } from '@/lib/forms';
-import { nudge, scrollToTarget, stepEnter, successBurst } from '@/lib/motion/core';
+import { nudge, stepEnter, successBurst } from '@/lib/motion/fx';
+import { scrollToTarget } from '@/lib/motion/scroll';
 
 export type Variant = 'sheet' | 'inline';
 export type Errors<K extends string> = Partial<Record<K, string>>;

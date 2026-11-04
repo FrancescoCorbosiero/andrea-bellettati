@@ -111,69 +111,73 @@ export default function ConsulenzaPage() {
       {/* COME FUNZIONA: i tre passi come stories nel telefono. Scorrendo le
           barre si riempiono e ogni slide spinge via la precedente (data-stories);
           senza script è una lista di tre card. */}
-      <section className="section overflow-hidden" aria-labelledby="how-title" data-stories>
-        <div className="wrap grid items-center gap-14 lg:grid-cols-[1fr_auto] lg:gap-20">
-          <div className="flex flex-col items-start gap-6">
-            <SectionHead
-              id="how-title"
-              eyebrow="Come funziona"
-              title="Dal questionario al piano, in"
-              script="tre passi."
-              lead="Gratuita e senza impegno, per cane e gatto. Scorri: te lo racconto come una storia."
-            />
-            <Link className="btn btn-ghost" href="#questionario">
-              Inizia dal questionario <ArrowIcon size={15} />
-            </Link>
-          </div>
-          <div
-            className="relative mx-auto w-[min(330px,86vw)] rounded-[44px] border border-white/15 bg-olive-dark p-3 shadow-[var(--shadow-smoke-xl)]"
-            data-story-phone
-          >
-            <div className="flex gap-1.5 px-2 pb-2.5 pt-1.5" aria-hidden>
-              {STEPS.map((s) => (
-                <span key={s.title} className="h-1 flex-1 overflow-hidden rounded-full bg-white/25">
-                  <i className="block h-full bg-white" data-story-bar />
-                </span>
-              ))}
+      <section className="section overflow-clip" aria-labelledby="how-title" data-stories>
+        <div data-pin-stage>
+          <div className="wrap grid items-center gap-14 lg:grid-cols-[1fr_auto] lg:gap-20">
+            <div className="flex flex-col items-start gap-6">
+              <SectionHead
+                id="how-title"
+                eyebrow="Come funziona"
+                title="Dal questionario al piano, in"
+                script="tre passi."
+                lead="Gratuita e senza impegno, per cane e gatto. Scorri: te lo racconto come una storia."
+              />
+              <Link className="btn btn-ghost" href="#questionario">
+                Inizia dal questionario <ArrowIcon size={15} />
+              </Link>
             </div>
-            <div className="flex items-center gap-2 px-3 pb-3 pt-1 text-cream-ink">
-              <Image src={logo} alt="" width={56} height={56} className="h-7 w-7 shrink-0 rounded-full border border-white/40 object-cover" />
-              <span className="min-w-0 truncate text-[13px] font-[700]">comunicazionecinofila</span>
-              <span className="shrink-0 whitespace-nowrap text-[12px] text-cream-ink/60">Consulenza gratuita</span>
+            <div className="relative" data-story-dock>
+              <div
+                className="relative mx-auto w-[min(330px,86vw)] rounded-[44px] border border-white/15 bg-olive-dark p-3 shadow-[var(--shadow-smoke-xl)]"
+                data-story-phone
+              >
+                <div className="flex gap-1.5 px-2 pb-2.5 pt-1.5" aria-hidden>
+                  {STEPS.map((s) => (
+                    <span key={s.title} className="h-1 flex-1 overflow-hidden rounded-full bg-white/25">
+                      <i className="block h-full bg-white" data-story-bar />
+                    </span>
+                  ))}
+                </div>
+                <div className="flex items-center gap-2 px-3 pb-3 pt-1 text-cream-ink">
+                  <Image src={logo} alt="" width={56} height={56} className="h-7 w-7 shrink-0 rounded-full border border-white/40 object-cover" />
+                  <span className="min-w-0 truncate text-[13px] font-[700]">comunicazionecinofila</span>
+                  <span className="shrink-0 whitespace-nowrap text-[12px] text-cream-ink/60">Consulenza gratuita</span>
+                </div>
+                <ol className="story-slides grid gap-2.5">
+                  {STEPS.map((s, i) => (
+                    <li
+                      key={s.title}
+                      className={`story-slide relative flex min-h-[250px] flex-col justify-end overflow-hidden rounded-[26px] border border-white/25 p-5 pb-6 ${STORY_TONES[i]}`}
+                      style={{ backgroundImage: 'radial-gradient(120% 85% at 0% 0%, rgb(255 255 255 / 0.32), rgb(255 255 255 / 0) 58%)' }}
+                      data-story-slide
+                    >
+                      <span className="absolute left-5 top-3 font-[family-name:var(--font-poster)] text-[112px] leading-[0.8]" data-story-piece>
+                        {i + 1}
+                      </span>
+                      {i === 0 && (
+                        <span className="absolute right-5 top-8 flex w-[42%] flex-col gap-2" aria-hidden data-story-piece>
+                          <span className="h-3.5 rounded-full border border-ink/70 bg-white/80" />
+                          <span className="h-3.5 rounded-full border border-ink/70 bg-white/80" />
+                          <span className="h-6 w-[58%] self-end rounded-full bg-ink" />
+                        </span>
+                      )}
+                      {i === 1 && <Phone size={84} strokeWidth={1.4} className="absolute right-5 top-6" aria-hidden data-story-piece />}
+                      {i === 2 && (
+                        <span className="absolute right-5 top-9 font-[family-name:var(--font-script)] text-[44px] leading-none text-peach" aria-hidden data-story-piece>
+                          Andrea
+                        </span>
+                      )}
+                      <h3 className="text-[25px]" data-story-piece>
+                        {s.title}
+                      </h3>
+                      <p className="mt-1.5 text-[15px] opacity-85" data-story-piece>
+                        {s.text}
+                      </p>
+                    </li>
+                  ))}
+                </ol>
+              </div>
             </div>
-            <ol className="story-slides grid gap-2.5">
-              {STEPS.map((s, i) => (
-                <li
-                  key={s.title}
-                  className={`story-slide relative flex min-h-[250px] flex-col justify-end overflow-hidden rounded-[26px] border border-white/25 p-5 pb-6 ${STORY_TONES[i]}`}
-                  style={{ backgroundImage: 'radial-gradient(120% 85% at 0% 0%, rgb(255 255 255 / 0.32), rgb(255 255 255 / 0) 58%)' }}
-                  data-story-slide
-                >
-                  <span className="absolute left-5 top-3 font-[family-name:var(--font-poster)] text-[112px] leading-[0.8]" data-story-piece>
-                    {i + 1}
-                  </span>
-                  {i === 0 && (
-                    <span className="absolute right-5 top-8 flex w-[42%] flex-col gap-2" aria-hidden data-story-piece>
-                      <span className="h-3.5 rounded-full border border-ink/70 bg-white/80" />
-                      <span className="h-3.5 rounded-full border border-ink/70 bg-white/80" />
-                      <span className="h-6 w-[58%] self-end rounded-full bg-ink" />
-                    </span>
-                  )}
-                  {i === 1 && <Phone size={84} strokeWidth={1.4} className="absolute right-5 top-6" aria-hidden data-story-piece />}
-                  {i === 2 && (
-                    <span className="absolute right-5 top-9 font-[family-name:var(--font-script)] text-[44px] leading-none text-peach" aria-hidden data-story-piece>
-                      Andrea
-                    </span>
-                  )}
-                  <h3 className="text-[25px]" data-story-piece>
-                    {s.title}
-                  </h3>
-                  <p className="mt-1.5 text-[15px] opacity-85" data-story-piece>
-                    {s.text}
-                  </p>
-                </li>
-              ))}
-            </ol>
           </div>
         </div>
       </section>

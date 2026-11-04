@@ -1,26 +1,27 @@
 /* =====================================================================
-   Motore delle animazioni — gli effetti delle pagine.
-   Porta il motore del sito Astro (src/scripts/motion.ts) dentro Next:
-   stessa API ad attributi, così le pagine restano Server Component e il
-   markup dice cosa si muove.
+   Motore delle animazioni — il sito Astro (src/scripts/motion.ts) dentro
+   Next: GSAP (ScrollTrigger + SplitText) e Lenis, stessa API ad attributi.
+   Le pagine restano Server Component: il markup dice cosa si muove.
 
-   ─ Rivelazioni
-     data-reveal            blocco — sale e appare quando entra
+   ─ Rivelazioni (una volta sola, quando arrivano a schermo)
+     data-reveal            blocco — sale e appare
      data-reveal="stagger"  … i figli entrano a cascata, con un rimbalzo
      data-split[="var"]     titolo — lines, pop, wipe, blur (default: a
                             turno); la parola .script arriva per ultima,
                             con la sua sottolineatura a mano
-     data-scrub             testo — le parole si accendono con lo scroll
-     data-hl[="scrub"]      <mark> — l'evidenziatore passa quando entra
-     data-stamp[="0.2"]     timbro — sbatte sul foglio (ritardo in secondi)
-     data-draw              svg — i tracciati si disegnano da soli
+     data-clip              foto — si apre da un ritaglio
      data-count="2021"      numero — conta fino al valore (data-count-from;
                             data-count-plain: senza separatore delle migliaia)
-     data-clip              foto — si apre da un ritaglio
-   ─ Sezioni guidate dallo scroll
+     data-hl                <mark> — l'evidenziatore passa
+     data-stamp[="0.2"]     timbro — sbatte sul foglio (ritardo in secondi)
+     data-draw              svg — i tracciati si disegnano da soli
+     data-wordmark          wordmark del footer: le lettere (.foot-char) salgono
+   ─ Guidate dallo scroll
+     data-scrub             testo — le parole si accendono
+     data-hl="scrub"        l'evidenziatore al passo con lo scroll
      data-stories           le stories nel telefono: [data-story-phone],
                             [data-story-slide], [data-story-bar], [data-story-piece]
-     data-strike            titolo pinnato: il <del> viene barrato a mano
+     data-strike            titolo fermo: il <del> viene barrato a mano
                             ([data-strike-path]) e l'<ins> si scrive
      data-stack             card che si impilano ([data-stack-card])
      data-rail              binario che si riempie ([data-rail-step])
@@ -38,36 +39,118 @@
    ─ Da toccare
      data-tilt              carta in 3D verso il puntatore
      data-pet               scodinzola al passaggio, cuori al click
-     data-wordmark          wordmark del footer: le lettere (.foot-char) salgono
      details[data-accordion] si apre e si chiude morbido ([data-accordion-body])
      .btn                   l'etichetta rotola al passaggio
 
    Regole della casa:
    - Niente è nascosto dal CSS. Lo stato di partenza lo mette questo
-     script, solo sotto la piega: senza JS la pagina è statica e completa
-     (le sezioni pinnate mostrano già lo stato finale).
+     script, solo a ciò che sta sotto la piega e non è ancora mai stato
+     visto: senza JS la pagina è statica e completa.
    - A fine rivelazione il controllo torna al CSS (clearProps).
    - Tutto nasce per pagina (app/template.tsx) e viene revertito prima che
-     React smonti la pagina: i pin tornano al loro posto, i titoli divisi
-     tornano interi.
-   - React: cambi di struttura (SplitText, pin, nodi aggiunti) solo sul
-     markup dei Server Component, che il browser non ridisegna. Nei
-     componenti client (questionari, fogli) niente attributi di questo motore.
-   ===================================================================== */
-import { DESKTOP, EASE, HEART, MOBILE, PAW, ScrollTrigger, SplitText, celebrate, clearFx, fine, gsap, reduced } from './core';
+     React smonti la pagina: i titoli divisi tornano interi.
+   - Le sezioni ferme usano CSS sticky, non i pin di ScrollTrigger: nessun
+     nodo aggiunto intorno alla sezione, nessun ricalcolo di tutta la pagina.
+   - React: cambi di struttura (SplitText, nodi aggiunti) solo sul markup
+     dei Server Component o su elementi che non cambiano mai.
 
-/* ── Helper ───────────────────────────────────────────────────────── */
-/** Vero se l'elemento parte dentro (o sopra) il primo schermo: quelli si
- *  lasciano stare, nasconderli ora farebbe sparire contenuto già dipinto. */
-const inFirstView = (el: Element): boolean => el.getBoundingClientRect().top < window.innerHeight * 0.92;
+   Leggerezza (un telefono medio deve restare reattivo):
+   - Questo modulo si carica dopo la pagina (import dinamico): GSAP non
+     pesa sull'idratazione e chi chiede "riduci movimento" non lo scarica.
+   - Le rivelazioni non usano ScrollTrigger: un IntersectionObserver le
+     "arma" quando si avvicinano (solo allora i titoli vengono divisi) e
+     le fa partire quando entrano. Nessuna lettura di layout all'avvio.
+   - Le sezioni legate allo scroll nascono a tappe, un task per tappa:
+     niente blocchi lunghi sul thread principale.
+   Le sezioni ferme vogliono un palco: data-pin-stage sul primo figlio
+   (data-strike, data-venn, data-stories) e data-story-dock intorno al
+   telefono delle stories.
+   ===================================================================== */
+import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { SplitText } from 'gsap/SplitText';
+import Lenis from 'lenis';
+import { HEART, PAW, celebrate, clearFx, fine, reduced } from './fx';
+import { setLenis } from './scroll';
+
+gsap.registerPlugin(ScrollTrigger, SplitText);
+
+/** Sezioni ferme "grandi" solo dove c'è spazio per raccontarle (lg di Tailwind). */
+const DESKTOP = '(min-width: 1024px)';
+const MOBILE = '(max-width: 1023px)';
+const EASE = 'power4.out';
 
 /** Gli elementi con l'intro CSS (primo schermo) si sono già mossi: giù le mani. */
 const skipIntro = (el: Element): boolean => !!el.closest('.intro, .intro-photo, [data-intro]');
+
+/* ── Per tutta la visita: Lenis, focus, altezza della pagina ───────── */
+let lenis: Lenis | null = null;
+/** Altezza della pagina all'ultima misura dei trigger. */
+let measured = 0;
+/** Il motore sta ancora creando le sezioni della pagina: niente refresh a metà. */
+let staging = false;
+const raf = (time: number): void => lenis?.raf(time * 1000);
+
+/**
+ * Accende ciò che dura per tutta la visita: lo scroll morbido, i blocchi
+ * in attesa che compaiono appena ci arriva il focus da tastiera, il
+ * ricalcolo dei trigger quando l'altezza della pagina cambia.
+ */
+export function startSite(): () => void {
+  if (reduced() || lenis) return () => {};
+  lenis = new Lenis({
+    lerp: 0.1,
+    // Fogli, menu e liste scrollabili scorrono nativi sotto il puntatore.
+    allowNestedScroll: true,
+    prevent: (node) => node.matches('[role="dialog"], [data-lenis-prevent]'),
+    // Un link verso un'altra pagina ferma l'inerzia: Next riparte dall'alto.
+    stopInertiaOnNavigate: true,
+  });
+  lenis.on('scroll', ScrollTrigger.update);
+  gsap.ticker.add(raf);
+  gsap.ticker.lagSmoothing(0);
+  setLenis(lenis);
+
+  // Ciò che aspetta ancora di comparire si mostra subito se ci arriva il focus.
+  const onFocus = (e: FocusEvent) => {
+    const pending = e.target instanceof Element ? e.target.closest<HTMLElement>('[data-motion-pending]') : null;
+    if (pending) revealNow(pending);
+  };
+  document.addEventListener('focusin', onFocus);
+
+  // Immagini, font e filtri cambiano l'altezza dopo l'avvio: i trigger restano
+  // onesti. Ma solo se l'altezza è davvero diversa da quella che ScrollTrigger
+  // ha misurato l'ultima volta (un pin appena creato lo ha già fatto rimisurare).
+  let timer = 0;
+  measured = document.documentElement.scrollHeight;
+  const onRefresh = () => void (measured = document.documentElement.scrollHeight);
+  ScrollTrigger.addEventListener('refresh', onRefresh);
+  const ro = new ResizeObserver(() => {
+    window.clearTimeout(timer);
+    timer = window.setTimeout(() => {
+      if (!staging && Math.abs(document.documentElement.scrollHeight - measured) >= 2) ScrollTrigger.refresh();
+    }, 200);
+  });
+  ro.observe(document.documentElement);
+
+  return () => {
+    document.removeEventListener('focusin', onFocus);
+    ro.disconnect();
+    ScrollTrigger.removeEventListener('refresh', onRefresh);
+    window.clearTimeout(timer);
+    gsap.ticker.remove(raf);
+    setLenis(null);
+    lenis?.destroy();
+    lenis = null;
+  };
+}
 
 /* ── Stato della pagina corrente ──────────────────────────────────── */
 let ctx: gsap.Context | null = null;
 let mm: gsap.MatchMedia | null = null;
 let cleanups: (() => void)[] = [];
+/** Ogni pagina ha il suo numero: le tappe di una pagina già smontata si fermano. */
+let run = 0;
 
 /** Listener con pulizia automatica al cambio pagina. */
 function on<E extends Event>(target: EventTarget, type: string, fn: (e: E) => void, opts?: AddEventListenerOptions): void {
@@ -76,14 +159,116 @@ function on<E extends Event>(target: EventTarget, type: string, fn: (e: E) => vo
   cleanups.push(() => target.removeEventListener(type, handler, opts));
 }
 
-/* ── Titoli ───────────────────────────────────────────────────────────
-   Non entrano tutti allo stesso modo: ognuno riceve una variante,
+/* ── Rivelazioni: IntersectionObserver, non ScrollTrigger ─────────────
+   Ogni elemento passa da due osservatori. Il primo lo "arma" quando è a
+   meno di uno schermo di distanza (stato di partenza, titolo diviso):
+   se invece è già a schermo, o sopra, resta com'è. Il secondo lo fa
+   partire quando entra; quelli che entrano insieme si passano la cascata. */
+type Shot = {
+  el: Element;
+  kind: string;
+  /** Margine in basso dell'osservatore che lo fa partire: '-12%' ≈ "top 88%". */
+  at: string;
+  arm: () => void;
+  play: (delay: number) => void;
+  armed: boolean;
+};
+const shots = new Map<Element, Shot>();
+let armer: IntersectionObserver | null = null;
+const players = new Map<string, IntersectionObserver>();
+
+const cascade = (i: number, n: number): number => (n > 5 ? (i / n) * 0.5 : i * 0.1);
+
+function player(at: string): IntersectionObserver {
+  const known = players.get(at);
+  if (known) return known;
+  const io: IntersectionObserver = new IntersectionObserver(
+    (entries) => {
+      const ready: Shot[] = [];
+      for (const e of entries) {
+        if (!e.isIntersecting) continue;
+        io.unobserve(e.target);
+        const shot = shots.get(e.target);
+        if (!shot?.armed) continue;
+        shots.delete(e.target);
+        ready.push(shot);
+      }
+      ready.sort((a, b) => (a.el.compareDocumentPosition(b.el) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1));
+      const byKind = new Map<string, Shot[]>();
+      for (const s of ready) byKind.set(s.kind, [...(byKind.get(s.kind) ?? []), s]);
+      byKind.forEach((list) => list.forEach((s, i) => ctx?.add(() => s.play(cascade(i, list.length)))));
+    },
+    { rootMargin: `0px 0px ${at} 0px` },
+  );
+  players.set(at, io);
+  return io;
+}
+
+function shoot(el: Element, kind: string, at: string, arm: () => void, play: (delay: number) => void): void {
+  if (!armer || skipIntro(el) || shots.has(el)) return;
+  shots.set(el, { el, kind, at, arm, play, armed: false });
+  armer.observe(el);
+}
+
+/** Mostra subito un blocco in attesa (focus da tastiera). */
+function revealNow(el: HTMLElement): void {
+  const shot = shots.get(el);
+  if (shot) {
+    shots.delete(el);
+    players.get(shot.at)?.unobserve(el);
+  }
+  el.removeAttribute('data-motion-pending');
+  gsap.to(el, { opacity: 1, y: 0, scale: 1, duration: 0.3, overwrite: true, clearProps: 'opacity,transform,transition' });
+}
+
+function startShots(): void {
+  armer = new IntersectionObserver(
+    (entries) => {
+      for (const e of entries) {
+        const shot = shots.get(e.target);
+        if (!shot || shot.armed) {
+          armer?.unobserve(e.target);
+          continue;
+        }
+        if (!e.isIntersecting) {
+          // Sopra lo schermo (scroll ripristinato, salto): resta com'è.
+          if (e.boundingClientRect.bottom <= 0) {
+            shots.delete(e.target);
+            armer?.unobserve(e.target);
+          }
+          continue; // sotto e lontano: si arma quando si avvicina
+        }
+        armer?.unobserve(e.target);
+        // Già a schermo: è stato visto così, resta fermo.
+        if (e.boundingClientRect.top < window.innerHeight) {
+          shots.delete(e.target);
+          continue;
+        }
+        ctx?.add(() => shot.arm());
+        shot.armed = true;
+        player(shot.at).observe(shot.el);
+      }
+    },
+    { rootMargin: '0px 0px 60% 0px' },
+  );
+  headings();
+  blocks();
+  images();
+  counters();
+  stamps();
+  highlights();
+  draws();
+  wordmark();
+}
+
+/* Titoli. Non entrano tutti allo stesso modo: ognuno riceve una variante,
    richiesta (data-split="pop") o distribuita a turno lungo la pagina,
    così due sezioni vicine non ripetono la stessa mossa.
      lines  ogni riga sale dalla sua maschera
      pop    le parole saltano su con un rimbalzo
      wipe   ogni riga si scopre da sinistra a destra
-     blur   le righe vanno a fuoco salendo */
+     blur   le righe vanno a fuoco salendo
+   SplitText divide il titolo solo quando si avvicina. */
 type HeadingVariant = 'lines' | 'pop' | 'wipe' | 'blur';
 const CYCLE: HeadingVariant[] = ['lines', 'pop', 'wipe', 'blur'];
 
@@ -92,106 +277,216 @@ function headingVariant(el: HTMLElement, index: number): HeadingVariant {
   return asked && CYCLE.includes(asked) ? asked : (CYCLE[index % CYCLE.length] ?? 'lines');
 }
 
-function headingTween(self: SplitText, v: HeadingVariant, trigger: HTMLElement): gsap.core.Tween {
-  const scrollTrigger = { trigger, start: 'top 88%', once: true };
-  switch (v) {
-    case 'pop':
-      return gsap.from(self.words, { opacity: 0, y: 46, scale: 0.6, duration: 0.9, ease: 'back.out(2.2)', stagger: 0.05, scrollTrigger });
-    case 'wipe':
-      return gsap.fromTo(
-        self.lines,
-        { clipPath: 'inset(-20% 100% -20% 0%)' },
-        { clipPath: 'inset(-20% 0% -20% 0%)', duration: 1.2, ease: 'power3.inOut', stagger: 0.12, clearProps: 'clipPath', scrollTrigger },
-      );
-    case 'blur':
-      return gsap.from(self.lines, { opacity: 0, y: 28, filter: 'blur(14px)', duration: 1.2, ease: 'power2.out', stagger: 0.1, clearProps: 'filter', scrollTrigger });
-    default:
-      return gsap.from(self.lines, { yPercent: 115, duration: 1.15, ease: EASE, stagger: 0.09, scrollTrigger });
-  }
+function hideHeading(self: SplitText, v: HeadingVariant): void {
+  if (v === 'pop') gsap.set(self.words, { opacity: 0, y: 46, scale: 0.6 });
+  else if (v === 'wipe') gsap.set(self.lines, { clipPath: 'inset(-20% 100% -20% 0%)' });
+  else if (v === 'blur') gsap.set(self.lines, { opacity: 0, y: 28, filter: 'blur(14px)' });
+  else gsap.set(self.lines, { yPercent: 115 });
 }
 
-function splitHeadings(): void {
-  let n = 0;
-  gsap.utils.toArray<HTMLElement>('[data-split]').forEach((el) => {
-    if (skipIntro(el) || inFirstView(el)) return;
-    const v = headingVariant(el, n++);
-    SplitText.create(el, {
-      type: v === 'pop' ? 'words,lines' : 'lines',
-      mask: v === 'lines' ? 'lines' : undefined,
-      linesClass: 'split-line',
-      wordsClass: 'split-word',
-      autoSplit: true,
-      onSplit: (self) => headingTween(self, v, el),
-    });
-    // La parola scritta a mano arriva per ultima, con la sua sottolineatura.
-    el.querySelectorAll<HTMLElement>('.script').forEach((s) => {
-      gsap.fromTo(
-        s,
-        { '--draw': 0, scale: 0.7 },
-        {
-          '--draw': 1,
-          scale: 1,
-          duration: 1.2,
-          delay: 0.45,
-          ease: 'elastic.out(1, 0.5)',
-          clearProps: 'transform',
-          scrollTrigger: { trigger: el, start: 'top 88%', once: true },
-        },
-      );
-    });
+function showHeading(self: SplitText, v: HeadingVariant): void {
+  if (v === 'pop') gsap.to(self.words, { opacity: 1, y: 0, scale: 1, duration: 0.9, ease: 'back.out(2.2)', stagger: 0.05 });
+  else if (v === 'wipe') gsap.to(self.lines, { clipPath: 'inset(-20% 0% -20% 0%)', duration: 1.2, ease: 'power3.inOut', stagger: 0.12, clearProps: 'clipPath' });
+  else if (v === 'blur') gsap.to(self.lines, { opacity: 1, y: 0, filter: 'blur(0px)', duration: 1.2, ease: 'power2.out', stagger: 0.1, clearProps: 'filter' });
+  else gsap.to(self.lines, { yPercent: 0, duration: 1.15, ease: EASE, stagger: 0.09 });
+}
+
+function headings(): void {
+  gsap.utils.toArray<HTMLElement>('[data-split]').forEach((el, i) => {
+    const v = headingVariant(el, i);
+    let split: SplitText | null = null;
+    let played = false;
+    shoot(
+      el,
+      'heading',
+      '-12%',
+      () => {
+        split = SplitText.create(el, {
+          type: v === 'pop' ? 'words,lines' : 'lines',
+          mask: v === 'lines' ? 'lines' : undefined,
+          linesClass: 'split-line',
+          wordsClass: 'split-word',
+          autoSplit: true,
+          onSplit: (self) => {
+            if (played) return;
+            hideHeading(self, v);
+            // La parola scritta a mano aspetta il suo turno.
+            const scripts = el.querySelectorAll('.script');
+            if (scripts.length) gsap.set(scripts, { '--draw': 0, scale: 0.7 });
+          },
+        });
+      },
+      () => {
+        played = true;
+        if (split) showHeading(split, v);
+        const scripts = el.querySelectorAll('.script');
+        if (scripts.length) {
+          gsap.to(scripts, { '--draw': 1, scale: 1, duration: 1.2, delay: 0.45, ease: 'elastic.out(1, 0.5)', clearProps: 'transform' });
+        }
+      },
+    );
   });
 }
 
-/* ── Blocchi ──────────────────────────────────────────────────────── */
-const BLOCKS = '[data-reveal]:not([data-reveal="stagger"]), [data-reveal="stagger"] > *';
-
-function revealBlocks(): void {
-  const blocks = gsap.utils.toArray<HTMLElement>(BLOCKS).filter((el) => !skipIntro(el) && !inFirstView(el));
-  if (!blocks.length) return;
-  const isChild = (el: HTMLElement): boolean => !!el.parentElement?.matches('[data-reveal="stagger"]');
-  blocks.forEach((el) => {
-    gsap.set(el, isChild(el) ? { opacity: 0, y: 54, scale: 0.94, transition: 'none' } : { opacity: 0, y: 44, transition: 'none' });
-    el.setAttribute('data-motion-pending', '');
-  });
-  cleanups.push(() => blocks.forEach((el) => el.removeAttribute('data-motion-pending')));
-  ScrollTrigger.batch(blocks, {
-    start: 'top 90%',
-    once: true,
-    onEnter: (batch) => {
-      const els = batch as HTMLElement[];
-      els.forEach((el) => el.removeAttribute('data-motion-pending'));
-      // Un salto (ancora, ricerca nella pagina) consegna in un colpo tutti i
-      // blocchi scavalcati: quelli già sopra lo schermo compaiono subito.
-      const passed = els.filter((el) => el.getBoundingClientRect().bottom < 0);
-      const entering = els.filter((el) => !passed.includes(el));
-      const done = { overwrite: true, clearProps: 'opacity,transform,transition' } as const;
-      if (passed.length) gsap.set(passed, done);
-      if (!entering.length) return;
-      const stagger = entering.length > 5 ? { amount: 0.5 } : 0.1;
-      const blocksIn = entering.filter((el) => !isChild(el));
-      const childrenIn = entering.filter(isChild);
-      if (blocksIn.length) gsap.to(blocksIn, { opacity: 1, y: 0, duration: 1, ease: 'power3.out', stagger, ...done });
-      // I figli delle griglie atterrano con un piccolo rimbalzo.
-      if (childrenIn.length) gsap.to(childrenIn, { opacity: 1, y: 0, scale: 1, duration: 1, ease: 'back.out(1.6)', stagger, ...done });
-    },
-  });
+/* Blocchi che salgono; i figli delle griglie atterrano con un piccolo rimbalzo. */
+function blocks(): void {
+  const done = { overwrite: true, clearProps: 'opacity,transform,transition' } as const;
+  gsap.utils.toArray<HTMLElement>('[data-reveal]:not([data-reveal="stagger"])').forEach((el) =>
+    shoot(
+      el,
+      'block',
+      '-10%',
+      () => {
+        gsap.set(el, { opacity: 0, y: 44, transition: 'none' });
+        el.setAttribute('data-motion-pending', '');
+      },
+      (delay) => {
+        el.removeAttribute('data-motion-pending');
+        gsap.to(el, { opacity: 1, y: 0, duration: 1, ease: 'power3.out', delay, ...done });
+      },
+    ),
+  );
+  gsap.utils.toArray<HTMLElement>('[data-reveal="stagger"] > *').forEach((el) =>
+    shoot(
+      el,
+      'child',
+      '-10%',
+      () => {
+        gsap.set(el, { opacity: 0, y: 54, scale: 0.94, transition: 'none' });
+        el.setAttribute('data-motion-pending', '');
+      },
+      (delay) => {
+        el.removeAttribute('data-motion-pending');
+        gsap.to(el, { opacity: 1, y: 0, scale: 1, duration: 1, ease: 'back.out(1.6)', delay, ...done });
+      },
+    ),
+  );
+  cleanups.push(() => document.querySelectorAll('[data-motion-pending]').forEach((el) => el.removeAttribute('data-motion-pending')));
 }
 
 /* Le foto si aprono da un ritaglio. */
-function revealImages(): void {
-  gsap.utils.toArray<HTMLElement>('[data-clip]').forEach((box) => {
-    if (skipIntro(box) || inFirstView(box)) return;
-    gsap.fromTo(
+function images(): void {
+  gsap.utils.toArray<HTMLElement>('[data-clip]').forEach((box) =>
+    shoot(
       box,
-      { clipPath: 'inset(14% 8% 14% 8% round 24px)' },
-      {
-        clipPath: 'inset(0% 0% 0% 0% round 0px)',
-        duration: 1.5,
-        ease: EASE,
-        clearProps: 'clipPath',
-        scrollTrigger: { trigger: box, start: 'top 88%', once: true },
+      'clip',
+      '-12%',
+      () => gsap.set(box, { clipPath: 'inset(14% 8% 14% 8% round 24px)' }),
+      () => gsap.to(box, { clipPath: 'inset(0% 0% 0% 0% round 0px)', duration: 1.5, ease: EASE, clearProps: 'clipPath' }),
+    ),
+  );
+}
+
+/* Numeri che contano fino al valore (il testo statico resta quello giusto). */
+function counters(): void {
+  gsap.utils.toArray<HTMLElement>('[data-count]').forEach((el) => {
+    const to = parseFloat(el.dataset.count ?? '');
+    if (Number.isNaN(to)) return;
+    const from = parseFloat(el.dataset.countFrom ?? '0') || 0;
+    const plain = el.hasAttribute('data-count-plain');
+    const original = el.textContent ?? '';
+    const suffix = original.replace(/^[\d.,\s]+/, '');
+    const show = (v: number): string => `${plain ? Math.round(v) : Math.round(v).toLocaleString('it-IT')}${suffix}`;
+    shoot(
+      el,
+      'count',
+      '-15%',
+      () => {
+        el.textContent = show(from);
+        cleanups.push(() => void (el.textContent = original));
+      },
+      () => {
+        const state = { v: from };
+        gsap.to(state, {
+          v: to,
+          duration: 1.8,
+          ease: 'power2.out',
+          onUpdate: () => void (el.textContent = show(state.v)),
+          onComplete: () => void (el.textContent = original),
+        });
       },
     );
+  });
+}
+
+/* Timbri che sbattono sul foglio; data-stamp="0.25" li fa arrivare in fila. */
+function stamps(): void {
+  gsap.utils.toArray<HTMLElement>('[data-stamp]').forEach((el) => {
+    const host = el.parentElement ?? el;
+    const delay = parseFloat(el.dataset.stamp ?? '') || 0;
+    shoot(
+      el,
+      'stamp',
+      '-30%',
+      () => gsap.set(el, { scale: 2.2, opacity: 0 }),
+      () =>
+        gsap
+          .timeline({ delay })
+          .to(el, { scale: 1, opacity: 1, duration: 0.45, ease: 'power4.in', clearProps: 'transform,opacity' })
+          .fromTo(host, { x: 0 }, { keyframes: { x: [-6, 5, -3, 0] }, duration: 0.3, ease: 'none', clearProps: 'transform' }),
+    );
+  });
+}
+
+/* L'evidenziatore passa sulle parole importanti (data-hl="scrub" è più sotto). */
+function highlights(): void {
+  gsap.utils.toArray<HTMLElement>('[data-hl]:not([data-hl="scrub"])').forEach((m) =>
+    shoot(
+      m,
+      'hl',
+      '-22%',
+      () => gsap.set(m, { '--hl': '0%' }),
+      () => gsap.to(m, { '--hl': '100%', duration: 1.1, ease: 'power2.inOut' }),
+    ),
+  );
+}
+
+/* Scarabocchi SVG che si disegnano da soli. */
+function draws(): void {
+  gsap.utils.toArray<SVGSVGElement>('[data-draw]').forEach((svg) => {
+    const paths = Array.from(svg.querySelectorAll<SVGPathElement>('path'))
+      .map((p) => {
+        try {
+          return { p, len: p.getTotalLength() };
+        } catch {
+          return { p, len: 0 }; // tracciato non disegnato (es. display:none su telefono)
+        }
+      })
+      .filter((x) => x.len > 0);
+    if (!paths.length) return;
+    shoot(
+      svg,
+      'draw',
+      '-15%',
+      () => paths.forEach(({ p, len }) => gsap.set(p, { strokeDasharray: len, strokeDashoffset: len })),
+      () => {
+        const tl = gsap.timeline();
+        paths.forEach(({ p }) => tl.to(p, { strokeDashoffset: 0, duration: 0.9, ease: 'power2.inOut', clearProps: 'strokeDasharray,strokeDashoffset' }, '>-0.15'));
+      },
+    );
+  });
+}
+
+/* Il wordmark del footer: le lettere salgono dalla loro maschera. */
+function wordmark(): void {
+  const wm = document.querySelector<HTMLElement>('[data-wordmark]');
+  if (!wm) return;
+  const chars = wm.querySelectorAll<HTMLElement>('.foot-char');
+  shoot(
+    wm,
+    'wordmark',
+    '-4%',
+    () => gsap.set(chars, { yPercent: 115 }),
+    () => gsap.to(chars, { yPercent: 0, duration: 1, ease: 'back.out(1.7)', stagger: 0.028 }),
+  );
+}
+
+/* ── Guidate dallo scroll ─────────────────────────────────────────── */
+/* L'evidenziatore al passo con lo scroll: dentro un testo data-scrub
+   arriva insieme alla parola. */
+function highlightsScrub(): void {
+  gsap.utils.toArray<HTMLElement>('[data-hl="scrub"]').forEach((m) => {
+    gsap.fromTo(m, { '--hl': '0%' }, { '--hl': '100%', ease: 'none', scrollTrigger: { trigger: m, start: 'top 66%', end: 'top 50%', scrub: 0.6 } });
   });
 }
 
@@ -254,73 +549,26 @@ function heroAway(): void {
   });
 }
 
-/* Evidenziatore che passa sulle parole importanti. data-hl="scrub" lo lega
-   allo scroll: dentro un testo data-scrub arriva insieme alla parola. */
-function highlights(): void {
-  gsap.utils.toArray<HTMLElement>('[data-hl]').forEach((m) => {
-    if (inFirstView(m)) return;
-    if (m.dataset.hl === 'scrub') {
-      gsap.fromTo(m, { '--hl': '0%' }, { '--hl': '100%', ease: 'none', scrollTrigger: { trigger: m, start: 'top 66%', end: 'top 50%', scrub: 0.6 } });
-      return;
-    }
-    gsap.fromTo(m, { '--hl': '0%' }, { '--hl': '100%', duration: 1.1, ease: 'power2.inOut', scrollTrigger: { trigger: m, start: 'top 78%', once: true } });
-  });
-}
-
-/* Timbri che sbattono sul foglio; data-stamp="0.25" li fa arrivare in fila. */
-function stamps(): void {
-  gsap.utils.toArray<HTMLElement>('[data-stamp]').forEach((el) => {
-    if (inFirstView(el)) return;
-    const host = el.parentElement ?? el;
-    const delay = parseFloat(el.dataset.stamp ?? '') || 0;
-    gsap
-      .timeline({ scrollTrigger: { trigger: host, start: 'top 70%', once: true } })
-      .from(el, { scale: 2.2, opacity: 0, duration: 0.45, ease: 'power4.in' }, delay)
-      .fromTo(host, { x: 0 }, { keyframes: { x: [-6, 5, -3, 0] }, duration: 0.3, ease: 'none', clearProps: 'transform' });
-  });
-}
-
-/* Numeri che contano fino al valore (il testo statico resta quello giusto). */
-function counters(): void {
-  gsap.utils.toArray<HTMLElement>('[data-count]').forEach((el) => {
-    if (inFirstView(el)) return;
-    const to = parseFloat(el.dataset.count ?? '');
-    if (Number.isNaN(to)) return;
-    const from = parseFloat(el.dataset.countFrom ?? '0') || 0;
-    const plain = el.hasAttribute('data-count-plain');
-    const original = el.textContent ?? '';
-    const suffix = original.replace(/^[\d.,\s]+/, '');
-    const show = (v: number): string => `${plain ? Math.round(v) : Math.round(v).toLocaleString('it-IT')}${suffix}`;
-    const state = { v: from };
-    el.textContent = show(from);
-    cleanups.push(() => void (el.textContent = original));
-    gsap.to(state, {
-      v: to,
-      duration: 1.8,
-      ease: 'power2.out',
-      onUpdate: () => void (el.textContent = show(state.v)),
-      onComplete: () => void (el.textContent = original),
-      scrollTrigger: { trigger: el, start: 'top 85%', once: true },
-    });
-  });
-}
-
-/* Scarabocchi SVG che si disegnano da soli. */
-function drawPaths(): void {
-  gsap.utils.toArray<SVGElement>('[data-draw]').forEach((svg) => {
-    const paths = Array.from(svg.querySelectorAll<SVGPathElement>('path'));
-    if (!paths.length || inFirstView(svg)) return;
-    const tl = gsap.timeline({ scrollTrigger: { trigger: svg, start: 'top 85%', once: true } });
-    paths.forEach((p) => {
-      let len = 0;
-      try {
-        len = p.getTotalLength();
-      } catch {
-        return; // tracciato non disegnato (es. display:none su telefono)
-      }
-      tl.fromTo(p, { strokeDasharray: len, strokeDashoffset: len }, { strokeDashoffset: 0, duration: 0.9, ease: 'power2.inOut', clearProps: 'strokeDasharray,strokeDashoffset' }, '>-0.15');
-    });
-  });
+/* ── Sezioni ferme: CSS sticky, non i pin di ScrollTrigger ───────────
+   Un pin creato a pagina caricata fa ricalcolare tutta la pagina (e
+   aggiunge un nodo intorno alla sezione). Qui la sezione si allunga della
+   corsa (--pin-run) e il suo palco ([data-pin-stage]) resta attaccato allo
+   schermo con position: sticky; ScrollTrigger guida solo lo scrub. Le
+   misure seguono lo schermo a ogni refresh (rotazione, barra degli indirizzi). */
+function stick(sec: HTMLElement, run: () => number, extra?: () => void): () => void {
+  const set = (): void => {
+    sec.style.setProperty('--pin-run', `${Math.round(run())}px`);
+    extra?.();
+  };
+  set();
+  if (!extra) sec.classList.add('is-pinned');
+  ScrollTrigger.addEventListener('refreshInit', set);
+  return () => {
+    ScrollTrigger.removeEventListener('refreshInit', set);
+    sec.classList.remove('is-pinned', 'is-story-phone');
+    sec.style.removeProperty('--pin-run');
+    sec.style.removeProperty('--phone-top');
+  };
 }
 
 /* ── Stories: come su Instagram, ma guidate dallo scroll ─────────────
@@ -329,24 +577,29 @@ function drawPaths(): void {
 function storiesScroll(media: gsap.MatchMedia): void {
   gsap.utils.toArray<HTMLElement>('[data-stories]').forEach((sec) => {
     const phone = sec.querySelector<HTMLElement>('[data-story-phone]');
+    const dock = sec.querySelector<HTMLElement>('[data-story-dock]') ?? phone?.parentElement;
     const slides = gsap.utils.toArray<HTMLElement>(sec.querySelectorAll('[data-story-slide]'));
     const bars = gsap.utils.toArray<HTMLElement>(sec.querySelectorAll('[data-story-bar]'));
-    if (!phone || slides.length < 2) return;
+    if (!phone || !dock || slides.length < 2) return;
     media.add({ desk: DESKTOP, mob: MOBILE }, (c) => {
       const desk = Boolean(c.conditions?.desk);
+      const run = (): number => window.innerHeight * slides.length * 0.75;
+      // Su telefono resta fermo solo il telefono, al centro dello schermo.
+      const phoneTop = (): number => Math.max(12, (window.innerHeight - phone.offsetHeight) / 2);
       sec.classList.add('is-story');
+      const unstick = desk
+        ? stick(sec, run)
+        : stick(sec, run, () => {
+            sec.classList.add('is-story-phone');
+            sec.style.setProperty('--phone-top', `${Math.round(phoneTop())}px`);
+          });
       gsap.set(slides.slice(1), { xPercent: 104 });
       gsap.set(bars, { scaleX: 0, transformOrigin: 'left center' });
       const tl = gsap.timeline({
         defaults: { ease: 'none' },
-        scrollTrigger: {
-          trigger: desk ? sec : phone,
-          start: desk ? 'top top' : 'center center',
-          end: `+=${slides.length * 75}%`,
-          pin: desk ? sec : phone,
-          scrub: 0.5,
-          invalidateOnRefresh: true,
-        },
+        scrollTrigger: desk
+          ? { trigger: sec, start: 'top top', end: () => `+=${run()}`, scrub: 0.5, invalidateOnRefresh: true }
+          : { trigger: dock, start: () => `top ${phoneTop()}px`, end: () => `+=${run()}`, scrub: 0.5, invalidateOnRefresh: true },
       });
       slides.forEach((slide, i) => {
         const bar = bars[i];
@@ -367,7 +620,10 @@ function storiesScroll(media: gsap.MatchMedia): void {
           );
         }
       });
-      return () => sec.classList.remove('is-story');
+      return () => {
+        unstick();
+        sec.classList.remove('is-story');
+      };
     });
   });
 }
@@ -383,11 +639,13 @@ function strikes(): void {
     const neu = sec.querySelector<HTMLElement>('ins');
     if (!path || !old || !neu) return;
     const len = path.getTotalLength();
+    const run = (): number => window.innerHeight * 1.1;
+    cleanups.push(stick(sec, run));
     gsap.set(path, { strokeDasharray: len, strokeDashoffset: len });
     gsap.set(neu, { clipPath: 'inset(-30% 100% -40% -6%)' });
     gsap.set(old, { opacity: 1 });
     gsap
-      .timeline({ scrollTrigger: { trigger: sec, start: 'center center', end: '+=110%', pin: true, scrub: 0.6 } })
+      .timeline({ scrollTrigger: { trigger: sec, start: 'top top', end: () => `+=${run()}`, scrub: 0.6, invalidateOnRefresh: true } })
       .to(path, { strokeDashoffset: 0, duration: 1, ease: 'power1.inOut' })
       .to(old, { opacity: 0.38, duration: 0.5 }, 0.5)
       .to(neu, { clipPath: 'inset(-30% -6% -40% -6%)', duration: 1, ease: 'power1.inOut' }, 0.95)
@@ -431,11 +689,13 @@ function venns(media: gsap.MatchMedia): void {
     const core = sec.querySelector<HTMLElement>('[data-venn-core]');
     const stage = sec.querySelector<HTMLElement>('[data-venn-stage]') ?? sec;
     if (circles.length < 2) return;
-    const build = (pinned: boolean): void => {
+    const build = (pinned: boolean): (() => void) | undefined => {
+      const run = (): number => window.innerHeight * 0.95;
+      const unstick = pinned ? stick(sec, run) : undefined;
       const tl = gsap.timeline({
         defaults: { ease: 'none' },
         scrollTrigger: pinned
-          ? { trigger: sec, start: 'top top', end: '+=95%', pin: true, scrub: 0.6 }
+          ? { trigger: sec, start: 'top top', end: () => `+=${run()}`, scrub: 0.6, invalidateOnRefresh: true }
           : { trigger: stage, start: 'top 88%', end: 'center 45%', scrub: 0.6 },
       });
       circles.forEach((c) => {
@@ -444,6 +704,7 @@ function venns(media: gsap.MatchMedia): void {
       });
       if (core) tl.fromTo(core, { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.3, ease: 'back.out(2.4)' }, 0.86);
       tl.to({}, { duration: 0.25 });
+      return unstick;
     };
     media.add(DESKTOP, () => build(true));
     media.add(MOBILE, () => build(false));
@@ -589,6 +850,7 @@ function rails(): void {
   });
 }
 
+/* ── Da toccare ───────────────────────────────────────────────────── */
 /* ── Accordion morbido (FAQ) ─────────────────────────────────────────
    Il <details> nativo funziona già senza script; qui apertura e chiusura
    diventano un'animazione d'altezza. Durante la chiusura [data-closing]
@@ -641,20 +903,6 @@ function accordions(): void {
   });
 }
 
-/* Il wordmark del footer: le lettere salgono dalla loro maschera. */
-function footerWordmark(): void {
-  const wm = document.querySelector<HTMLElement>('[data-wordmark]');
-  if (!wm || inFirstView(wm)) return;
-  gsap.from(wm.querySelectorAll('.foot-char'), {
-    yPercent: 115,
-    duration: 1,
-    ease: 'back.out(1.7)',
-    stagger: 0.028,
-    scrollTrigger: { trigger: wm, start: 'top 96%', once: true },
-  });
-}
-
-/* ── Da toccare ───────────────────────────────────────────────────── */
 /* Carte che si inclinano verso il puntatore. Un solo ascoltatore per la
    pagina (delega): funziona anche per le card montate dopo, come i
    risultati della ricerca del blog. */
@@ -753,6 +1001,13 @@ function rollButtons(): void {
 
 /* ── Ciclo della pagina ───────────────────────────────────────────── */
 function stopPage(): void {
+  run++;
+  staging = false;
+  armer?.disconnect();
+  armer = null;
+  players.forEach((io) => io.disconnect());
+  players.clear();
+  shots.clear();
   cleanups.forEach((fn) => fn());
   cleanups = [];
   mm?.revert();
@@ -762,6 +1017,9 @@ function stopPage(): void {
   clearFx();
 }
 
+/** Un task alla volta: il thread principale respira tra una tappa e l'altra. */
+const nextTask = (): Promise<void> => new Promise((resolve) => window.setTimeout(resolve, 0));
+
 /**
  * Accende gli effetti della pagina appena montata. Restituisce la funzione
  * che li spegne tutti (va chiamata prima che React smonti la pagina).
@@ -769,41 +1027,66 @@ function stopPage(): void {
 export function startPage(): () => void {
   stopPage();
   if (reduced()) return () => {};
+  const id = ++run;
   document.documentElement.classList.add('has-motion');
-  rollButtons();
   const media = gsap.matchMedia();
   mm = media;
-  ctx = gsap.context(() => {
-    // Prima le sezioni pinnate, nell'ordine della pagina: i pin aggiungono
-    // spazio e tutto ciò che sta sotto deve misurarsi dopo.
-    storiesScroll(media);
-    strikes();
-    venns(media);
-    stackCards();
-    heroAway();
-    splitHeadings();
-    revealBlocks();
-    revealImages();
-    scrubStatements();
-    parallax();
-    highlights();
-    rails();
-    stamps();
-    trails();
-    fans();
+  const page = gsap.context(() => {});
+  ctx = page;
+  // Subito, e leggero: osservatori e ascoltatori, nessuna lettura di layout.
+  rollButtons();
+  page.add(() => {
+    startShots();
     accordions();
-    counters();
-    drawPaths();
-    footerWordmark();
     tiltCards();
     petPortraits();
   });
-  ScrollTrigger.sort();
-  let alive = true;
-  // I font cambiano a capo e altezze: si rimisura quando sono pronti.
-  document.fonts?.ready.then(() => alive && ScrollTrigger.refresh());
+  // Poi le sezioni legate allo scroll, una tappa per task. Prima quelle
+  // ferme: allungano la pagina, e ciò che sta sotto si misura dopo.
+  const stages: (() => void)[] = [
+    () => storiesScroll(media),
+    () => strikes(),
+    () => venns(media),
+    () => {
+      stackCards();
+      heroAway();
+    },
+    () => {
+      parallax();
+      rails();
+      fans();
+    },
+    () => {
+      scrubStatements();
+      highlightsScrub();
+    },
+    () => trails(),
+  ];
+  staging = true;
+  void (async () => {
+    // Le sezioni ferme allungano la pagina: ciò che nasce dopo si misura già
+    // sull'altezza giusta, quindi a fine giro serve un refresh solo se
+    // qualcosa ha cambiato l'altezza dopo di loro.
+    let afterPins = 0;
+    for (const [i, stage] of stages.entries()) {
+      await nextTask();
+      if (id !== run) return;
+      page.add(stage);
+      if (i === 2) afterPins = document.documentElement.scrollHeight;
+    }
+    staging = false;
+    const h = document.documentElement.scrollHeight;
+    if (Math.abs(h - afterPins) >= 2) ScrollTrigger.refresh();
+    else measured = h;
+    ScrollTrigger.sort();
+    // I font cambiano a capo e altezze: se non sono ancora pronti, si rimisura dopo.
+    if (document.fonts && document.fonts.status !== 'loaded') {
+      void document.fonts.ready.then(() => {
+        if (id === run) ScrollTrigger.refresh();
+      });
+    }
+  })();
   return () => {
-    alive = false;
-    stopPage();
+    if (id === run) stopPage();
   };
 }

@@ -113,33 +113,35 @@ export default function LavoraConNoiPage() {
       </section>
 
       {/* COME LAVORIAMO: la parola sbagliata barrata a mano */}
-      <section className="section overflow-hidden" aria-labelledby="strike-title" data-strike>
-        <div className="wrap flex flex-col items-start gap-6">
-          <span className="eyebrow">Come lavoriamo</span>
-          <h2 id="strike-title" className="flex flex-col items-start text-[clamp(44px,6.4vw,92px)] leading-[0.92]">
-            <span className="block">Stiamo creando</span>
-            <span className="relative inline-block whitespace-nowrap max-sm:text-[7.4vw]">
-              <del className="text-ink no-underline opacity-[0.38]">una rete di venditori</del>
-              <svg aria-hidden viewBox="0 0 600 120" preserveAspectRatio="none" className="pointer-events-none absolute left-[-3%] top-[6%] h-[86%] w-[106%] overflow-visible text-peach-deep">
-                <path
-                  data-strike-path
-                  d="M10 74C90 44 170 92 250 62s170-40 250-6c32 13 60 10 88 0M22 98c120-40 260-6 360-32 70-18 140-30 200-4"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="9"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </span>
-            <ins className="-mt-[0.04em] ml-[0.9em] inline-block font-[family-name:var(--font-script)] text-[1.3em] font-[600] normal-case leading-[0.9] tracking-normal text-peach-deep no-underline">
-              un Team.
-            </ins>
-          </h2>
-          <p className="lead max-w-[30em]">
-            Non cerchiamo semplici venditori: cerchiamo persone e professionisti che vogliono sviluppare competenze
-            nell&apos;alimentazione e nel benessere animale.
-          </p>
+      <section className="section overflow-clip" aria-labelledby="strike-title" data-strike>
+        <div data-pin-stage>
+          <div className="wrap flex flex-col items-start gap-6">
+            <span className="eyebrow">Come lavoriamo</span>
+            <h2 id="strike-title" className="flex flex-col items-start text-[clamp(44px,6.4vw,92px)] leading-[0.92]">
+              <span className="block">Stiamo creando</span>
+              <span className="relative inline-block whitespace-nowrap max-sm:text-[7.4vw]">
+                <del className="text-ink no-underline opacity-[0.38]">una rete di venditori</del>
+                <svg aria-hidden viewBox="0 0 600 120" preserveAspectRatio="none" className="pointer-events-none absolute left-[-3%] top-[6%] h-[86%] w-[106%] overflow-visible text-peach-deep">
+                  <path
+                    data-strike-path
+                    d="M10 74C90 44 170 92 250 62s170-40 250-6c32 13 60 10 88 0M22 98c120-40 260-6 360-32 70-18 140-30 200-4"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="9"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </span>
+              <ins className="-mt-[0.04em] ml-[0.9em] inline-block font-[family-name:var(--font-script)] text-[1.3em] font-[600] normal-case leading-[0.9] tracking-normal text-peach-deep no-underline">
+                un Team.
+              </ins>
+            </h2>
+            <p className="lead max-w-[30em]">
+              Non cerchiamo semplici venditori: cerchiamo persone e professionisti che vogliono sviluppare competenze
+              nell&apos;alimentazione e nel benessere animale.
+            </p>
+          </div>
         </div>
       </section>
 

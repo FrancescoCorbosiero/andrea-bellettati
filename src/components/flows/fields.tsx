@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect, useLayoutEffect, useRef, type ReactNode } from 'react';
+import { useEffect, useRef, type ReactNode } from 'react';
 import { Chip, Segmented, SegmentedButton } from 'konsta/react';
 import { Check } from 'lucide-react';
 import { PawIcon } from '@/components/icons';
-import { gsap, reduced, swing } from '@/lib/motion/core';
+import { swing } from '@/lib/motion/fx';
 
 /* Pezzi condivisi dai due questionari: campi in stile Konsta (iOS), scelte
    a tocco e la medaglietta col nome dell'animale. */
@@ -228,29 +228,20 @@ export function PetTag({ name, species }: { name: string; species: string }) {
 
 /**
  * La barra dei passi: un segmento per passo e una zampina che salta da un
- * passo all'altro (GSAP). La posizione la mette solo l'animazione, così un
- * nuovo render non la teletrasporta.
+ * passo all'altro. Solo CSS: la posizione scorre con una transizione e il
+ * salto riparte a ogni passo (la chiave cambia).
  */
 export function StepBar({ count, step, done }: { count: number; step: number; done: boolean }) {
-  const runner = useRef<HTMLSpanElement>(null);
-  const placed = useRef(false);
   const at = done ? count - 1 : step;
-  useLayoutEffect(() => {
-    const el = runner.current;
-    if (!el) return;
-    const left = `${(((at + 0.5) / count) * 100).toFixed(2)}%`;
-    if (!placed.current || reduced()) {
-      placed.current = true;
-      gsap.set(el, { left });
-      return;
-    }
-    gsap.to(el, { left, duration: 0.7, ease: 'power2.inOut', overwrite: 'auto' });
-    gsap.fromTo(el, { y: 0 }, { keyframes: { y: [0, -14, 0] }, duration: 0.7, ease: 'none' });
-  }, [at, count]);
   return (
     <div className="relative mt-6" aria-hidden>
-      <span ref={runner} className="pointer-events-none absolute -top-[21px] left-0 h-[14px] w-4 -translate-x-1/2 text-peach-deep">
-        <PawIcon size={16} />
+      <span
+        className="pointer-events-none absolute -top-[21px] h-[14px] w-4 -translate-x-1/2 text-peach-deep transition-[left] duration-700 ease-[cubic-bezier(0.65,0,0.35,1)] motion-reduce:transition-none"
+        style={{ left: `${(((at + 0.5) / count) * 100).toFixed(2)}%` }}
+      >
+        <span key={at} className="paw-hop block">
+          <PawIcon size={16} />
+        </span>
       </span>
       <ol className="grid gap-1.5" style={{ gridTemplateColumns: `repeat(${count}, minmax(0, 1fr))` }}>
         {Array.from({ length: count }, (_, i) => (

@@ -39,7 +39,7 @@ SES_DRY_RUN=true npm run dev
 | Framework | **Next.js 16** (App Router, Turbopack) + **React 19** + TypeScript |
 | Stile | **Tailwind 4** con il Brand System in `src/app/globals.css` (palette, font, materiale vetro) |
 | Parti "app" | **Konsta UI 5** (tema iOS, anche lo stile vetro di iOS 26) · `react-modal-sheet` per i fogli · `sonner` per gli avvisi |
-| Movimento | **GSAP** (ScrollTrigger + SplitText) e **Lenis** per lo scroll morbido: il motore del sito Astro, con la stessa API ad attributi (`src/lib/motion`) · CSS per le entrate del primo schermo · `motion` per il pannello desktop |
+| Movimento | **GSAP** (ScrollTrigger + SplitText) e **Lenis** per lo scroll morbido: il motore del sito Astro, con la stessa API ad attributi, caricato dopo la pagina (`src/lib/motion`) · CSS per le entrate del primo schermo · Web Animations per i questionari · `motion` per il pannello desktop |
 | Contenuti | Markdown in `src/content/` (gray-matter + unified), schema zod |
 | Email | AWS SES v2 da `/api/richiesta` |
 | Deploy | Docker (Next standalone) dietro **Caddy** (caddy-docker-proxy) |
@@ -72,7 +72,7 @@ src/
     site.ts                  # ⭐ contatti, numeri (STATS), link
     forms.ts                 # campi, opzioni e regole dei questionari (condivisi browser/server)
     content.ts               # lettura dei Markdown
-    motion/                  # ⭐ il motore delle animazioni: core.ts (Lenis, coriandoli, questionari), page.ts (effetti ad attributi)
+    motion/                  # ⭐ animazioni: engine.ts (GSAP + Lenis, caricato dopo la pagina), fx.ts (effetti senza librerie), scroll.ts (Lenis per il resto del sito)
     emails.ts mail.ts rateLimit.ts seo.ts dates.ts
   assets/                    # foto (next/image) · fonts/ font self-hosted
 docs/                        # spec, decisioni, web app futura
@@ -142,7 +142,7 @@ argomento: cambiarlo richiede `--build`.
 Il motore è quello del sito Astro (`src/scripts/motion.ts`), portato in
 `src/lib/motion`: GSAP con ScrollTrigger e SplitText, Lenis per lo scroll
 morbido. Si usa dal markup, con attributi (l'elenco completo è in testa a
-`src/lib/motion/page.ts`):
+`src/lib/motion/engine.ts`):
 
 - `data-split` sui titoli (righe, parole, tendina, sfocatura, a turno) e la
   parola `.script` che arriva per ultima con la sua sottolineatura a mano;
@@ -157,6 +157,19 @@ morbido. Si usa dal markup, con attributi (l'elenco completo è in testa a
 Le animazioni nascono a ogni pagina (`app/template.tsx`) e vengono smontate
 prima che React tolga la pagina. Senza JavaScript, o con "riduci movimento",
 la pagina è completa e ferma.
+
+Per tenerlo leggero (le misure sono in `docs/decisioni.md`):
+
+- `engine.ts` arriva con un import dinamico, dopo la pagina; con "riduci
+  movimento" non si scarica nemmeno. Nessun componente lo importa in modo
+  statico: chi ha bisogno di Lenis usa `scroll.ts`, i questionari usano `fx.ts`.
+- Le rivelazioni partono da un IntersectionObserver (niente ScrollTrigger):
+  i titoli vengono divisi solo quando si avvicinano.
+- Le sezioni ferme usano `position: sticky`, non i pin di ScrollTrigger:
+  `data-pin-stage` sul primo figlio della sezione (e `data-story-dock`
+  intorno al telefono delle stories).
+- Il codice dei fogli (questionario, menu) arriva al primo segno di
+  intenzione: puntatore sopra il link, dito che tocca, focus.
 
 ## Brand e vetro, in breve
 
