@@ -60,6 +60,34 @@ I due flussi sono sempre a un tocco: header (desktop), barra in basso
   Bottoni: lastre lucide che si sollevano al passaggio con un lampo di luce.
 - **Niente rotazioni, sticker scontornati, nastri** (richiesta del cliente).
 
+## Movimento
+
+Le animazioni sono quelle del sito Astro (`src/scripts/motion.ts`), con lo
+stesso motore (GSAP + Lenis, vedi `src/lib/motion`):
+
+- **Ovunque**: titoli che entrano a varianti (righe, parole, tendina,
+  sfocatura) con la parola a mano che si sottolinea per ultima; blocchi che
+  salgono, griglie a cascata con un rimbalzo; foto che si aprono da un
+  ritaglio e derivano piano; testo dei bottoni che rotola; header che si
+  toglie di mezzo leggendo verso il basso; wordmark del footer che sale.
+- **Home**: la frase dell'approccio che si accende parola per parola, i numeri
+  che contano, il binario dei quattro passi con la zampina, FAQ morbide.
+- **Consulenza**: i tre passi come stories nel telefono (sezione ferma, barre
+  che si riempiono), il binario del monitoraggio.
+- **Lavora con noi**: lo striscione che si allontana, "una rete di venditori"
+  barrata a mano mentre si scrive "un Team", le card del metodo che si
+  impilano, l'evidenziatore sulle frasi della trasparenza, card che si
+  inclinano verso il puntatore.
+- **Approccio**: i timbri "Non negoziabile", i tre cerchi che convergono in
+  una direzione (sezione ferma su desktop), il proverbio che si accende con lo
+  zig-zag su "sbagliata" e l'evidenziatore su "corretta".
+- **Chi sono**: le polaroid che si aprono a ventaglio, il sentiero di impronte
+  che accende le tappe, il cuore che manda cuori.
+- **Questionari**: passo che entra dal lato giusto, zampina sulla barra,
+  scossa sugli errori, medaglietta che oscilla, spunta e coriandoli all'invio.
+
+Senza JavaScript o con "riduci movimento" tutto è visibile e fermo.
+
 ## I questionari
 
 Campi, opzioni e regole sono in `src/lib/forms.ts` (stessi controlli in browser

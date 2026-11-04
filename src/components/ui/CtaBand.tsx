@@ -28,7 +28,7 @@ export default function CtaBand({
 }) {
   return (
     <section
-      className="relative isolate overflow-hidden border-t border-ink/10 py-[clamp(80px,11vw,140px)]"
+      className="relative isolate overflow-hidden border-t border-ink/10 py-[clamp(80px,11vw,140px)] [--script-line:#fff]"
       style={{
         background:
           'radial-gradient(55% 80% at 0% 0%, rgb(255 255 255 / 0.4), rgb(255 255 255 / 0) 65%), radial-gradient(50% 70% at 100% 100%, rgb(208 103 63 / 0.28), rgb(208 103 63 / 0) 70%), var(--color-peach)',
@@ -37,7 +37,9 @@ export default function CtaBand({
       <div className="wrap relative z-10 grid items-center gap-10 lg:grid-cols-[1.3fr_0.7fr]">
         <div className="flex flex-col items-start gap-6">
           <span className="eyebrow">{eyebrow}</span>
-          <h2 className="max-w-[10.5em] text-[clamp(46px,6.2vw,92px)] leading-[0.9] text-ink">{title}</h2>
+          <h2 className="max-w-[10.5em] text-[clamp(46px,6.2vw,92px)] leading-[0.9] text-ink" data-split="lines">
+            {title}
+          </h2>
           <p className="max-w-[33em] text-[clamp(17px,1.7vw,20px)] leading-relaxed text-ink">{lead}</p>
           <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
             <Link className="btn btn-dark btn-lg" href={CONSULENZA_HREF}>

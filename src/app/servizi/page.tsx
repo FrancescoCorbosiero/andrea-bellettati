@@ -112,12 +112,23 @@ export default function ServiziPage() {
         <div className="wrap grid gap-7">
           {SERVICES.map((s, i) => (
             <article key={s.n} className="slab grid overflow-hidden lg:grid-cols-2" data-reveal aria-labelledby={`svc-${s.n}`}>
-              <div className={`relative min-h-[260px] border-b border-ink/10 lg:min-h-[520px] lg:border-b-0 ${i % 2 ? 'lg:order-2 lg:border-l' : 'lg:border-r'}`}>
-                <Image src={s.photo} alt={s.alt} fill sizes="(min-width: 1024px) 600px, 100vw" className={`object-cover ${s.position ?? ''}`} />
+              <div
+                className={`relative min-h-[260px] overflow-hidden border-b border-ink/10 lg:min-h-[520px] lg:border-b-0 ${i % 2 ? 'lg:order-2 lg:border-l' : 'lg:border-r'}`}
+                data-clip
+              >
+                <Image
+                  src={s.photo}
+                  alt={s.alt}
+                  fill
+                  sizes="(min-width: 1024px) 600px, 100vw"
+                  className={`object-cover ${s.position ?? ''}`}
+                  data-parallax
+                  data-parallax-cover
+                />
               </div>
               <div className="flex flex-col items-start gap-4 p-[clamp(26px,4vw,52px)]">
                 <span className="font-[family-name:var(--font-script)] text-[24px] leading-none text-peach-deep">Servizio {s.n}</span>
-                <h2 id={`svc-${s.n}`} className="display-md">
+                <h2 id={`svc-${s.n}`} className="display-md" data-split>
                   {s.title}
                 </h2>
                 <p className="text-[17px] leading-relaxed text-ink-soft">{s.text}</p>
@@ -149,9 +160,9 @@ export default function ServiziPage() {
       <section className="section border-t border-ink/10 bg-sand" aria-labelledby="s-how-title">
         <div className="wrap">
           <SectionHead id="s-how-title" eyebrow="Come funziona" title="Dal primo messaggio" script="al piano firmato." />
-          <ol className="mt-10 grid gap-5 md:grid-cols-3">
+          <ol className="mt-10 grid gap-5 md:grid-cols-3" data-reveal="stagger">
             {STEPS.map((s, i) => (
-              <li key={s.title} className="slab flex flex-col gap-3 p-7" data-reveal style={{ ['--d' as string]: `${i * 0.08}s` }}>
+              <li key={s.title} className="slab flex flex-col gap-3 p-7">
                 <span className="grid h-12 w-12 place-items-center rounded-full border border-white/80 bg-peach font-[family-name:var(--font-poster)] text-[22px] text-ink shadow-[var(--shadow-glass-s)]">
                   {i + 1}
                 </span>

@@ -72,3 +72,22 @@ un'altra pagina dal menu, il passo viene sostituito, mai "tornato indietro"
 Articoli ed eventi restano file Markdown con lo schema del sito Astro: Andrea li
 può aggiungere senza codice e il passaggio dalla versione Astro è stato una
 copia. Nel pannello della web app diventeranno modificabili da browser.
+
+## Le animazioni: lo stesso motore GSAP del sito Astro
+
+Nella prima stesura della versione 2 le animazioni erano state semplificate
+(comparse in CSS e pochi effetti scritti a mano). Era una scelta, non un limite
+di Next, e toglieva proprio una parte del carattere del sito Astro. Ora c'è lo
+stesso motore: GSAP (ScrollTrigger, SplitText) e Lenis, con la stessa API ad
+attributi (`src/lib/motion`). Le pagine restano Server Component e il markup
+dice cosa si muove; un solo componente client (`MotionPage`, in
+`app/template.tsx`) accende gli effetti a ogni pagina e li smonta prima che
+React tolga la pagina, così i pin e i titoli divisi tornano com'erano.
+
+La regola per non litigare con React: i cambi di struttura (titoli divisi da
+SplitText, sezioni pinnate, nodi aggiunti) solo sul markup dei Server Component
+o su elementi che non cambiano mai tra un render e l'altro. Nei questionari
+(Konsta) GSAP anima solo posizione e opacità: il passo entra dal lato giusto,
+la zampina salta sulla barra, i campi sbagliati fanno "no-no", all'invio
+partono i coriandoli. Lo scroll morbido si ferma quando c'è un foglio aperto.
+Con "riduci movimento" il motore non parte e Lenis resta spento.

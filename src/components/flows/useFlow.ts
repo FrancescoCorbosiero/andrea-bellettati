@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { clearDraft, readDraft, sendRequest, writeDraft } from '@/lib/send';
 import type { RequestPayload } from '@/lib/forms';
+import { nudge, scrollToTarget, stepEnter, successBurst } from '@/lib/motion/core';
 
 export type Variant = 'sheet' | 'inline';
 export type Errors<K extends string> = Partial<Record<K, string>>;
@@ -44,6 +45,7 @@ export function useFlow<D extends object, K extends string>({
   const titleRef = useRef<HTMLHeadingElement>(null);
   const moved = useRef(false);
   const restored = useRef(false);
+  const lastStep = useRef(0);
 
   // Bozza: si riprende da dove si era rimasti (stessa scheda del browser).
   useEffect(() => {
@@ -58,7 +60,8 @@ export function useFlow<D extends object, K extends string>({
     if (restored.current && !sent) writeDraft(storageKey, draft);
   }, [draft, sent, storageKey]);
 
-  // Ogni passo parte dall'alto, con il focus sul suo titolo.
+  // Ogni passo parte dall'alto, con il focus sul suo titolo, ed entra dal
+  // lato giusto; l'invio riuscito si festeggia.
   useEffect(() => {
     if (!moved.current) return;
     const body = bodyRef.current;
@@ -67,10 +70,30 @@ export function useFlow<D extends object, K extends string>({
     } else {
       // In pagina: si riporta in vista tutta la scheda (testata e avanzamento compresi).
       const root = body?.closest<HTMLElement>('[data-flow-root]') ?? body;
-      if (root && root.getBoundingClientRect().top < 90) root.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      if (root && root.getBoundingClientRect().top < 90) scrollToTarget(root);
     }
     titleRef.current?.focus({ preventScroll: true });
+    if (sent) {
+      stepEnter(body, 0);
+      successBurst(body);
+    } else {
+      stepEnter(body, step >= lastStep.current ? 1 : -1);
+    }
+    lastStep.current = step;
   }, [step, sent, variant]);
+
+  /** I campi sbagliati fanno "no-no" con la testa. */
+  const shake = (errs: Errors<K>) => {
+    window.requestAnimationFrame(() => {
+      const body = bodyRef.current;
+      if (!body) return;
+      const fields = Object.keys(errs)
+        .map((key) => body.querySelector<HTMLElement>(`[data-field="${key}"]`))
+        .filter((el): el is HTMLElement => !!el)
+        .map((el) => el.closest<HTMLElement>('li') ?? el);
+      nudge(fields);
+    });
+  };
 
   const set = useCallback(<F extends keyof D>(key: F, value: D[F]) => {
     setDraft((d) => ({ ...d, [key]: value }));
@@ -101,6 +124,7 @@ export function useFlow<D extends object, K extends string>({
       window.requestAnimationFrame(() => {
         bodyRef.current?.querySelector<HTMLElement>(`[data-field="${first}"]`)?.focus();
       });
+      shake(errs);
       return false;
     }
     go(step + 1);
@@ -115,6 +139,7 @@ export function useFlow<D extends object, K extends string>({
       if (Object.keys(errs).length) {
         go(s);
         setErrors(errs);
+        shake(errs);
         return;
       }
     }

@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic';
 import { usePathname } from 'next/navigation';
 import { KonstaProvider } from 'konsta/react';
 import type { ConsultDraft } from '@/lib/forms';
+import { lockScroll } from '@/lib/motion/core';
 
 /* Il questionario e il menu si caricano solo quando servono (o quando la
    pagina è ferma): chi legge e basta non scarica il codice dei form. */
@@ -134,6 +135,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const consultShown = sheet === 'consult' && session?.path === pathname;
+  const anySheet = consultShown || sheet === 'menu';
+
+  // Con un foglio aperto la pagina sotto sta ferma (anche lo scroll morbido).
+  useEffect(() => {
+    lockScroll(anySheet);
+  }, [anySheet]);
 
   return (
     <KonstaProvider theme="ios" dark={false}>

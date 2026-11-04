@@ -66,6 +66,7 @@ export default function HomeHero() {
           {/* La cornice: una lastra di vetro chiaro, la luce entra dall'alto a
               sinistra e si accende di pesca nell'angolo opposto. */}
           <div
+            data-speed="0.08"
             className="intro-photo absolute right-0 top-0 aspect-square w-[86%] rounded-[28px] border border-white/55"
             style={{
               ['--d' as string]: '0.2s',
@@ -90,6 +91,7 @@ export default function HomeHero() {
             </div>
           </div>
           <div
+            data-speed="-0.05"
             className="intro-photo absolute -bottom-[2%] -left-[2%] z-10 aspect-square w-[44%] overflow-hidden rounded-2xl border border-white/60 shadow-[0_0_0_7px_rgb(255_255_255/0.12),0_0_0_8px_rgb(255_255_255/0.22),0_36px_64px_-24px_rgb(0_0_0/0.72),0_8px_18px_-8px_rgb(0_0_0/0.4)]"
             style={{ ['--d' as string]: '0.6s' }}
           >

@@ -1,8 +1,10 @@
 'use client';
 
-import type { ReactNode } from 'react';
+import { useEffect, useLayoutEffect, useRef, type ReactNode } from 'react';
 import { Chip, Segmented, SegmentedButton } from 'konsta/react';
 import { Check } from 'lucide-react';
+import { PawIcon } from '@/components/icons';
+import { gsap, reduced, swing } from '@/lib/motion/core';
 
 /* Pezzi condivisi dai due questionari: campi in stile Konsta (iOS), scelte
    a tocco e la medaglietta col nome dell'animale. */
@@ -188,8 +190,18 @@ export function ChoiceCards<T extends string>({
 export function PetTag({ name, species }: { name: string; species: string }) {
   const shown = name.trim() || (species === 'gatto' ? 'Micio' : 'Birba');
   const empty = !name.trim();
+  const tag = useRef<HTMLDivElement>(null);
+  const typed = useRef(false);
+  // Mentre scrivi il nome la medaglietta oscilla, come appesa al collare.
+  useEffect(() => {
+    if (!typed.current) {
+      typed.current = true;
+      return;
+    }
+    swing(tag.current);
+  }, [name]);
   return (
-    <div className="relative mx-auto flex w-[136px] flex-col items-center pt-5" aria-hidden>
+    <div ref={tag} className="relative mx-auto flex w-[136px] flex-col items-center pt-5" aria-hidden>
       <span className="absolute top-0 h-7 w-7 rounded-full border-[3px] border-ink-mute/45 bg-transparent" />
       <div
         className="relative grid h-[118px] w-[118px] place-items-center rounded-full border border-white/80 text-center"
@@ -210,6 +222,46 @@ export function PetTag({ name, species }: { name: string; species: string }) {
           {shown}
         </span>
       </div>
+    </div>
+  );
+}
+
+/**
+ * La barra dei passi: un segmento per passo e una zampina che salta da un
+ * passo all'altro (GSAP). La posizione la mette solo l'animazione, così un
+ * nuovo render non la teletrasporta.
+ */
+export function StepBar({ count, step, done }: { count: number; step: number; done: boolean }) {
+  const runner = useRef<HTMLSpanElement>(null);
+  const placed = useRef(false);
+  const at = done ? count - 1 : step;
+  useLayoutEffect(() => {
+    const el = runner.current;
+    if (!el) return;
+    const left = `${(((at + 0.5) / count) * 100).toFixed(2)}%`;
+    if (!placed.current || reduced()) {
+      placed.current = true;
+      gsap.set(el, { left });
+      return;
+    }
+    gsap.to(el, { left, duration: 0.7, ease: 'power2.inOut', overwrite: 'auto' });
+    gsap.fromTo(el, { y: 0 }, { keyframes: { y: [0, -14, 0] }, duration: 0.7, ease: 'none' });
+  }, [at, count]);
+  return (
+    <div className="relative mt-6" aria-hidden>
+      <span ref={runner} className="pointer-events-none absolute -top-[21px] left-0 h-[14px] w-4 -translate-x-1/2 text-peach-deep">
+        <PawIcon size={16} />
+      </span>
+      <ol className="grid gap-1.5" style={{ gridTemplateColumns: `repeat(${count}, minmax(0, 1fr))` }}>
+        {Array.from({ length: count }, (_, i) => (
+          <li
+            key={i}
+            className={`h-1.5 rounded-full transition-colors duration-500 ${
+              done || i <= step ? 'bg-peach shadow-[0_2px_6px_-2px_rgb(208_103_63/0.7)]' : 'bg-ink/10'
+            }`}
+          />
+        ))}
+      </ol>
     </div>
   );
 }

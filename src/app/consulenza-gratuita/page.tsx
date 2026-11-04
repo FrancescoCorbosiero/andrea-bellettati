@@ -30,6 +30,7 @@ const LOOK = ['cosa mangia', 'come si comporta', 'abitudini e stile di vita'];
 const MONITORING = ['Adattamento', 'Appetito', 'Feci', 'Digestione', 'Abitudini'];
 
 const STEP_TONES = ['bg-peach text-ink', 'bg-sage text-cream-ink', 'bg-ink text-peach'];
+const STORY_TONES = ['bg-peach text-ink', 'bg-sage text-cream-ink', 'bg-deep text-cream-ink'];
 
 export default function ConsulenzaPage() {
   const channels = [
@@ -107,8 +108,10 @@ export default function ConsulenzaPage() {
         </div>
       </section>
 
-      {/* COME FUNZIONA: i tre passi come storie nel telefono */}
-      <section className="section overflow-hidden" aria-labelledby="how-title">
+      {/* COME FUNZIONA: i tre passi come stories nel telefono. Scorrendo le
+          barre si riempiono e ogni slide spinge via la precedente (data-stories);
+          senza script è una lista di tre card. */}
+      <section className="section overflow-hidden" aria-labelledby="how-title" data-stories>
         <div className="wrap grid items-center gap-14 lg:grid-cols-[1fr_auto] lg:gap-20">
           <div className="flex flex-col items-start gap-6">
             <SectionHead
@@ -116,7 +119,7 @@ export default function ConsulenzaPage() {
               eyebrow="Come funziona"
               title="Dal questionario al piano, in"
               script="tre passi."
-              lead="Gratuita e senza impegno, per cane e gatto."
+              lead="Gratuita e senza impegno, per cane e gatto. Scorri: te lo racconto come una storia."
             />
             <Link className="btn btn-ghost" href="#questionario">
               Inizia dal questionario <ArrowIcon size={15} />
@@ -124,29 +127,53 @@ export default function ConsulenzaPage() {
           </div>
           <div
             className="relative mx-auto w-[min(330px,86vw)] rounded-[44px] border border-white/15 bg-olive-dark p-3 shadow-[var(--shadow-smoke-xl)]"
-            data-reveal
+            data-story-phone
           >
-            <div className="flex items-center gap-2 px-3 pb-3 pt-2 text-cream-ink">
-              <Image src={logo} alt="" width={56} height={56} className="h-7 w-7 rounded-full border border-white/40 object-cover" />
-              <span className="text-[13px] font-[700]">comunicazionecinofila</span>
-              <span className="text-[12px] text-cream-ink/60">Consulenza gratuita</span>
-            </div>
-            <div className="grid gap-2.5">
-              {STEPS.map((s, i) => (
-                <article
-                  key={s.title}
-                  className={`relative overflow-hidden rounded-[26px] border border-white/25 p-5 pb-6 ${
-                    ['bg-peach text-ink', 'bg-sage text-cream-ink', 'bg-deep text-cream-ink'][i]
-                  }`}
-                  style={{ backgroundImage: 'radial-gradient(120% 85% at 0% 0%, rgb(255 255 255 / 0.32), rgb(255 255 255 / 0) 58%)' }}
-                >
-                  <span className="block font-[family-name:var(--font-poster)] text-[64px] leading-[0.85]">{i + 1}</span>
-                  <h3 className="mt-3 text-[24px]">{s.title}</h3>
-                  <p className="mt-1.5 text-[14.5px] opacity-85">{s.text}</p>
-                  {i === 2 && <span className="absolute right-5 top-5 font-[family-name:var(--font-script)] text-[30px] text-peach">Andrea</span>}
-                </article>
+            <div className="flex gap-1.5 px-2 pb-2.5 pt-1.5" aria-hidden>
+              {STEPS.map((s) => (
+                <span key={s.title} className="h-1 flex-1 overflow-hidden rounded-full bg-white/25">
+                  <i className="block h-full bg-white" data-story-bar />
+                </span>
               ))}
             </div>
+            <div className="flex items-center gap-2 px-3 pb-3 pt-1 text-cream-ink">
+              <Image src={logo} alt="" width={56} height={56} className="h-7 w-7 shrink-0 rounded-full border border-white/40 object-cover" />
+              <span className="min-w-0 truncate text-[13px] font-[700]">comunicazionecinofila</span>
+              <span className="shrink-0 whitespace-nowrap text-[12px] text-cream-ink/60">Consulenza gratuita</span>
+            </div>
+            <ol className="story-slides grid gap-2.5">
+              {STEPS.map((s, i) => (
+                <li
+                  key={s.title}
+                  className={`story-slide relative flex min-h-[250px] flex-col justify-end overflow-hidden rounded-[26px] border border-white/25 p-5 pb-6 ${STORY_TONES[i]}`}
+                  style={{ backgroundImage: 'radial-gradient(120% 85% at 0% 0%, rgb(255 255 255 / 0.32), rgb(255 255 255 / 0) 58%)' }}
+                  data-story-slide
+                >
+                  <span className="absolute left-5 top-3 font-[family-name:var(--font-poster)] text-[112px] leading-[0.8]" data-story-piece>
+                    {i + 1}
+                  </span>
+                  {i === 0 && (
+                    <span className="absolute right-5 top-8 flex w-[42%] flex-col gap-2" aria-hidden data-story-piece>
+                      <span className="h-3.5 rounded-full border border-ink/70 bg-white/80" />
+                      <span className="h-3.5 rounded-full border border-ink/70 bg-white/80" />
+                      <span className="h-6 w-[58%] self-end rounded-full bg-ink" />
+                    </span>
+                  )}
+                  {i === 1 && <Phone size={84} strokeWidth={1.4} className="absolute right-5 top-6" aria-hidden data-story-piece />}
+                  {i === 2 && (
+                    <span className="absolute right-5 top-9 font-[family-name:var(--font-script)] text-[44px] leading-none text-peach" aria-hidden data-story-piece>
+                      Andrea
+                    </span>
+                  )}
+                  <h3 className="text-[25px]" data-story-piece>
+                    {s.title}
+                  </h3>
+                  <p className="mt-1.5 text-[15px] opacity-85" data-story-piece>
+                    {s.text}
+                  </p>
+                </li>
+              ))}
+            </ol>
           </div>
         </div>
       </section>
@@ -168,17 +195,22 @@ export default function ConsulenzaPage() {
             script="alimentare."
             lead="Il mio lavoro parte dal primo confronto, ma continua nel tempo. Seguo personalmente ogni percorso, monitorando:"
           />
-          <ol className="relative mt-12 grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 lg:grid-cols-5" data-reveal>
-            <span aria-hidden className="absolute left-[10%] right-[10%] top-[22px] hidden h-1 rounded-full bg-peach/80 lg:block" />
-            {MONITORING.map((m, i) => (
-              <li key={m} className="relative flex flex-col items-start gap-3 lg:items-center">
-                <span className="grid h-11 w-11 place-items-center rounded-full border border-white/70 bg-peach font-[family-name:var(--font-poster)] text-[17px] text-ink shadow-[var(--shadow-night-s)]">
-                  {String(i + 1).padStart(2, '0')}
-                </span>
-                <span className="text-[clamp(22px,2.4vw,30px)] font-[800] tracking-[-0.02em]">{m}</span>
-              </li>
-            ))}
-          </ol>
+          <div className="rail relative mt-12 [--rail-off:var(--color-olive-dark)]" data-rail>
+            {/* Il binario: verticale su telefono, orizzontale da desktop. */}
+            <span aria-hidden className="absolute bottom-[26px] left-6 top-[26px] w-1 rounded-full bg-white/15 lg:bottom-auto lg:left-[10%] lg:right-[10%] lg:top-6 lg:h-1 lg:w-auto">
+              <span className="absolute inset-0 origin-top scale-y-[var(--p)] rounded-full bg-peach lg:origin-left lg:scale-x-[var(--p)] lg:scale-y-100" />
+            </span>
+            <ol className="relative grid gap-6 lg:grid-cols-5 lg:gap-4">
+              {MONITORING.map((m, i) => (
+                <li key={m} className="rail-step flex items-center gap-4 lg:flex-col lg:gap-3" data-rail-step>
+                  <span className="rail-dot relative z-10 grid h-[52px] w-[52px] shrink-0 place-items-center rounded-full border border-white/70 bg-peach font-[family-name:var(--font-poster)] text-[18px] text-ink shadow-[var(--shadow-night-s)]">
+                    {String(i + 1).padStart(2, '0')}
+                  </span>
+                  <span className="text-[clamp(28px,7vw,40px)] font-[800] leading-none tracking-[-0.03em] lg:text-[clamp(22px,2.4vw,30px)]">{m}</span>
+                </li>
+              ))}
+            </ol>
+          </div>
           <div className="mt-12 flex max-w-[38em] flex-col items-start gap-5">
             <p className="text-[17.5px] leading-relaxed text-cream-ink/85">
               Dietro ogni consulenza c&apos;è inoltre il confronto con un Team di professionisti e consulenti che condividono un
@@ -202,7 +234,7 @@ export default function ConsulenzaPage() {
               script="contattami."
               lead="Preferisci saltare il questionario? Scegli il canale che ti è più comodo. Rispondo entro 24–48 ore."
             />
-            <ul className="grid gap-3 sm:grid-cols-2" data-reveal>
+            <ul className="grid gap-3 sm:grid-cols-2" data-reveal="stagger">
               {channels.map((c) => (
                 <li key={c.label}>
                   <a
@@ -226,6 +258,7 @@ export default function ConsulenzaPage() {
               alt="Andrea Bellettati seduto su una roccia con la sua bassotta, lungo un fiume di montagna"
               caption="pausa al fiume, con la bassotta"
               sizes="330px"
+              data-speed="0.15"
             />
           </div>
         </div>

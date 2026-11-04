@@ -15,9 +15,18 @@ import Logo from './Logo';
 export default function SiteHeader() {
   const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
+  const [hidden, setHidden] = useState(false);
 
+  // Leggendo verso il basso l'header si toglie di mezzo; risalendo torna.
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 8);
+    let lastY = window.scrollY;
+    const onScroll = () => {
+      const y = window.scrollY;
+      setScrolled(y > 8);
+      if (y > 260 && y > lastY + 4) setHidden(true);
+      else if (y < lastY - 4 || y <= 260) setHidden(false);
+      lastY = y;
+    };
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
@@ -27,7 +36,9 @@ export default function SiteHeader() {
 
   return (
     <header
-      className={`sticky top-0 z-50 border-b transition-[box-shadow,background-color,border-color] duration-300 ${
+      // Il focus da tastiera lo riporta sempre in vista.
+      onFocusCapture={() => setHidden(false)}
+      className={`site-header sticky top-0 z-50 border-b ${hidden ? 'is-hidden' : ''} ${
         scrolled
           ? 'border-white/70 bg-cream/80 shadow-[0_10px_30px_-22px_rgb(31_40_24/0.55)]'
           : 'border-transparent bg-cream/70'

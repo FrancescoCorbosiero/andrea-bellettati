@@ -4,6 +4,9 @@ import logo from '@/assets/logo.jpg';
 import { WhatsAppIcon } from '@/components/icons';
 import { CONSULENZA_HREF, EMAIL, IG_HANDLE, IG_URL, PHONE, PHONE_DISPLAY, TEAM_HREF, WA_LINK } from '@/lib/site';
 
+/** Il wordmark gigante in fondo: ogni lettera sale dalla sua maschera (data-wordmark). */
+const WORDMARK = ['Comunicazione', 'Cinofila'];
+
 const COLS = [
   {
     title: 'Sito',
@@ -86,10 +89,18 @@ export default function SiteFooter() {
 
       <p
         aria-hidden
+        data-wordmark
         className="mt-16 select-none text-center font-[family-name:var(--font-poster)] text-[clamp(44px,11vw,176px)] uppercase leading-[0.82] tracking-[0.01em]"
       >
-        <span className="block text-peach">Comunicazione</span>
-        <span className="block text-cream-ink">Cinofila</span>
+        {WORDMARK.map((word, w) => (
+          <span key={word} className={`foot-line ${w === 0 ? 'text-peach' : 'text-cream-ink'}`}>
+            {Array.from(word).map((ch, i) => (
+              <span key={i} className="foot-char">
+                {ch}
+              </span>
+            ))}
+          </span>
+        ))}
       </p>
 
       <div className="wrap mt-8 flex flex-wrap justify-between gap-3 border-t border-white/15 pt-5 text-[13px] text-cream-ink/60">

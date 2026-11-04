@@ -39,7 +39,7 @@ SES_DRY_RUN=true npm run dev
 | Framework | **Next.js 16** (App Router, Turbopack) + **React 19** + TypeScript |
 | Stile | **Tailwind 4** con il Brand System in `src/app/globals.css` (palette, font, materiale vetro) |
 | Parti "app" | **Konsta UI 5** (tema iOS, anche lo stile vetro di iOS 26) · `react-modal-sheet` per i fogli · `sonner` per gli avvisi |
-| Movimento | CSS (entrate, comparsa allo scroll), `motion` per il pannello desktop |
+| Movimento | **GSAP** (ScrollTrigger + SplitText) e **Lenis** per lo scroll morbido: il motore del sito Astro, con la stessa API ad attributi (`src/lib/motion`) · CSS per le entrate del primo schermo · `motion` per il pannello desktop |
 | Contenuti | Markdown in `src/content/` (gray-matter + unified), schema zod |
 | Email | AWS SES v2 da `/api/richiesta` |
 | Deploy | Docker (Next standalone) dietro **Caddy** (caddy-docker-proxy) |
@@ -50,7 +50,8 @@ SES_DRY_RUN=true npm run dev
 src/
   app/
     layout.tsx               # html, font, header, footer, barra in basso, JSON-LD del sito
-    globals.css              # ⭐ Brand System: token, vetro, bottoni, lastre, testo lungo, tema Konsta
+    template.tsx             # accende le animazioni di ogni pagina (si rimonta a ogni cambio pagina)
+    globals.css              # ⭐ Brand System: token, vetro, bottoni, lastre, testo lungo, tema Konsta, stati delle animazioni
     page.tsx                 # home
     consulenza-gratuita/     # pagina della consulenza con il questionario in pagina
     lavora-con-noi/          # pagina del Team con il flusso "Entra nel Team"
@@ -60,7 +61,8 @@ src/
     api/richiesta/route.ts   # invio dei questionari (SES)
     sitemap.ts robots.ts manifest.ts rss.xml/ not-found.tsx
   components/
-    app/                     # guscio da app: AppProvider (fogli, cronologia), MenuSheet, RevealObserver
+    app/                     # guscio da app: AppProvider (fogli, cronologia), MenuSheet
+    motion/                  # MotionPage (per pagina) e SmoothScroll (Lenis, ancore, per tutta la visita)
     flows/                   # i due questionari Konsta: useFlow, ConsultFlow, TeamFlow, fields (widget)
     layout/                  # SiteHeader, MobileTabbar (Konsta), SiteFooter, Logo
     home/ blog/ events/ team/ ui/ seo/
@@ -70,6 +72,7 @@ src/
     site.ts                  # ⭐ contatti, numeri (STATS), link
     forms.ts                 # campi, opzioni e regole dei questionari (condivisi browser/server)
     content.ts               # lettura dei Markdown
+    motion/                  # ⭐ il motore delle animazioni: core.ts (Lenis, coriandoli, questionari), page.ts (effetti ad attributi)
     emails.ts mail.ts rateLimit.ts seo.ts dates.ts
   assets/                    # foto (next/image) · fonts/ font self-hosted
 docs/                        # spec, decisioni, web app futura
@@ -133,6 +136,27 @@ docker compose up -d --build
 
 `NEXT_PUBLIC_SITE_URL` (URL assoluti, sitemap, Open Graph) entra al build come
 argomento: cambiarlo richiede `--build`.
+
+## Animazioni
+
+Il motore è quello del sito Astro (`src/scripts/motion.ts`), portato in
+`src/lib/motion`: GSAP con ScrollTrigger e SplitText, Lenis per lo scroll
+morbido. Si usa dal markup, con attributi (l'elenco completo è in testa a
+`src/lib/motion/page.ts`):
+
+- `data-split` sui titoli (righe, parole, tendina, sfocatura, a turno) e la
+  parola `.script` che arriva per ultima con la sua sottolineatura a mano;
+- `data-reveal` (o `data-reveal="stagger"` per i figli a cascata), `data-clip`
+  sulle foto, `data-speed` / `data-parallax`, `data-count`, `data-hl`,
+  `data-stamp`, `data-scrub`;
+- le sezioni raccontate dallo scroll: `data-stories` (consulenza),
+  `data-strike` e `data-stack` (lavora con noi), `data-venn` (approccio),
+  `data-trail` e `data-fan` (chi sono), `data-rail` (home e consulenza);
+- da toccare: `data-tilt`, `data-pet`, il testo dei `.btn` che rotola.
+
+Le animazioni nascono a ogni pagina (`app/template.tsx`) e vengono smontate
+prima che React tolga la pagina. Senza JavaScript, o con "riduci movimento",
+la pagina è completa e ferma.
 
 ## Brand e vetro, in breve
 

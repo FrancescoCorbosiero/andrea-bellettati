@@ -68,7 +68,7 @@ export default function EventiPage() {
           <div className="wrap">
             <div className="mb-6 flex flex-col items-start gap-3">
               <span className="eyebrow">In programma e in replay</span>
-              <h2 id="ev-more" className="display-md">
+              <h2 id="ev-more" className="display-md" data-split>
                 Altri <span className="script">appuntamenti.</span>
               </h2>
             </div>
@@ -104,7 +104,7 @@ export default function EventiPage() {
       <section className="on-dark section-tight" style={{ background: 'radial-gradient(60% 70% at 85% 0%, rgb(255 255 255 / 0.14), rgb(255 255 255 / 0) 70%), var(--color-sage)' }}>
         <div className="wrap flex flex-col items-start gap-5 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex flex-col gap-3">
-            <h2 className="display-md">
+            <h2 className="display-md" data-split>
               Preferisci un confronto
               <br />
               tutto tuo?

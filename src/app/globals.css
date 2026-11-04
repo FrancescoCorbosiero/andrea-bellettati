@@ -477,35 +477,219 @@
 @media (prefers-reduced-motion: no-preference) {
   .intro { animation: intro-up 0.8s var(--ease-soft) both; animation-delay: var(--d, 0s); }
   .intro-photo { animation: photo-in 1s var(--ease-spring) both; animation-delay: var(--d, 0.2s); }
+  /* I tratti a mano del primo schermo si disegnano da soli; quelli sotto la
+     piega li disegna il motore (data-draw) quando arrivano a schermo. */
   .draw path { stroke-dasharray: 1; stroke-dashoffset: 1; animation: draw-on 0.9s cubic-bezier(0.6, 0, 0.3, 1) both; animation-delay: var(--d, 0.9s); }
-  /* Comparsa allo scroll (Reveal.tsx aggiunge .is-in). */
-  /* Solo con JavaScript attivo (RevealObserver aggiunge .has-reveal): senza, tutto resta visibile. */
-  .has-reveal [data-reveal] { opacity: 0; translate: 0 26px; transition: opacity 0.8s var(--ease-soft), translate 0.9s var(--ease-soft), transform 0.45s var(--ease-soft), box-shadow 0.45s var(--ease-soft); transition-delay: var(--d, 0s), var(--d, 0s), 0s, 0s; }
-  .has-reveal [data-reveal].is-in { opacity: 1; translate: 0 0; }
-  /* I tratti a mano dentro un blocco che compare si disegnano quando arriva a schermo. */
-  .has-reveal [data-reveal]:not(.is-in) .draw path { animation-play-state: paused; }
 }
 
-/* Il binario del "come funziona" (HowRail.tsx): i passi si accendono quando la zampina li raggiunge. */
+/* =====================================================================
+   Il motore delle animazioni (src/lib/motion): stati e decori.
+   Sotto la piega niente è nascosto dal CSS: lo stato di partenza lo mette
+   lo script (html.has-motion), e senza script la pagina è statica e
+   completa. Con "riduci movimento" lo script non parte.
+   ===================================================================== */
+
+/* Lenis (scroll morbido) — da lenis.css ufficiale. */
+html.lenis, html.lenis body { height: auto; }
+html.lenis { scroll-behavior: auto; } /* lo smooth nativo litiga con Lenis */
+.lenis:not(.lenis-autoToggle).lenis-stopped { overflow: clip; }
+.lenis [data-lenis-prevent] { overscroll-behavior: contain; }
+.lenis.lenis-smooth iframe { pointer-events: none; }
+
+/* Header che si toglie di mezzo leggendo verso il basso (SiteHeader.tsx). */
+.site-header {
+  transition: transform 0.45s cubic-bezier(0.2, 0.7, 0.2, 1), box-shadow 0.3s ease, background-color 0.3s ease, border-color 0.3s ease;
+}
+.site-header.is-hidden { transform: translateY(-100%); box-shadow: none; }
+
+/* Maschere delle righe dei titoli: Anton corre a line-height 0.9. */
+.split-line-mask { padding: 0.08em 0 0.1em; margin: -0.08em 0 -0.1em; }
+
+/* La parola scritta a mano nei titoli: sottolineatura a mano che si
+   disegna (--draw da 0 a 1, data-split). Senza script è già disegnata. */
+:root { --script-line: var(--color-peach); }
+.on-dark { --script-line: var(--color-peach-soft); }
+h2 .script { position: relative; display: inline-block; }
+h2 .script::after {
+  content: '';
+  position: absolute;
+  left: -2%;
+  right: -4%;
+  bottom: -0.08em;
+  height: 0.2em;
+  background: var(--script-line);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 12' preserveAspectRatio='none'%3E%3Cpath d='M2 8c18-6 30 2 46-1s28-6 44-2 20 3 26 0' fill='none' stroke='black' stroke-width='3.4' stroke-linecap='round'/%3E%3C/svg%3E") center / 100% 100% no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 12' preserveAspectRatio='none'%3E%3Cpath d='M2 8c18-6 30 2 46-1s28-6 44-2 20 3 26 0' fill='none' stroke='black' stroke-width='3.4' stroke-linecap='round'/%3E%3C/svg%3E") center / 100% 100% no-repeat;
+  transform: scaleX(var(--draw, 1));
+  transform-origin: left center;
+  pointer-events: none;
+}
+
+/* Testo dei bottoni che rotola al passaggio (il motore avvolge l'etichetta). */
+.btn-roll { position: relative; display: inline-grid; overflow: hidden; line-height: 1.15; }
+.btn-roll > span, .btn-roll::after { grid-area: 1 / 1; transition: translate 0.5s cubic-bezier(0.7, 0, 0.2, 1); }
+.btn-roll::after { content: attr(data-label); translate: 0 110%; }
+@media (hover: hover) {
+  .btn:hover .btn-roll > span { translate: 0 -110%; }
+  .btn:hover .btn-roll::after { translate: 0 0; }
+}
+
+/* Coriandoli: zampe, cuori e ossa sopra a tutto. */
+.fx-layer { position: fixed; inset: 0; z-index: 9999; pointer-events: none; overflow: hidden; }
+.fx-bit { position: absolute; display: block; will-change: transform, opacity; }
+.fx-bit svg { display: block; width: 100%; height: 100%; }
+
+/* Ritratti da coccolare. */
+[data-pet] { cursor: pointer; }
+
+/* Evidenziatore (data-hl): cresce con --hl, va a capo con la riga. */
+.hl {
+  color: var(--color-ink);
+  font-weight: 700;
+  padding: 0 0.12em;
+  margin: 0 -0.12em;
+  border-radius: 0.25em;
+  background: linear-gradient(100deg, rgb(244 169 138 / 0.25), rgb(244 169 138 / 0.95) 6%, rgb(244 169 138 / 0.8) 94%, rgb(244 169 138 / 0.3)) 0 75% / var(--hl, 100%) 80% no-repeat;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+
+/* Il proverbio (approccio): "sbagliata" si prende lo zig-zag del correttore,
+   "corretta" l'evidenziatore bianco. Crescono con --hl (data-hl="scrub"). */
+:root { --squiggle: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 8'%3E%3Cpath d='M0 4Q5 -0.6 10 4T20 4' fill='none' stroke='black' stroke-width='2.4'/%3E%3C/svg%3E"); }
+.pv-bad, .pv-good { position: relative; color: inherit; background: none; }
+.pv-bad::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -0.04em;
+  height: 0.16em;
+  width: var(--hl, 100%);
+  background: var(--color-ink);
+  pointer-events: none;
+  -webkit-mask: var(--squiggle) 0 50% / 0.6em 100% repeat-x;
+  mask: var(--squiggle) 0 50% / 0.6em 100% repeat-x;
+}
+.pv-good {
+  padding: 0 0.1em;
+  margin: 0 -0.1em;
+  border-radius: 0.2em;
+  background: linear-gradient(#fff, #fff) 0 62% / var(--hl, 100%) 76% no-repeat;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+
+/* Il wordmark del footer (data-wordmark): ogni riga è la maschera delle sue lettere. */
+.foot-line { display: block; overflow: hidden; padding: 0.06em 0 0.03em; margin: -0.06em 0 -0.03em; }
+.foot-char { display: inline-block; }
+
+/* Il binario (data-rail): i passi si accendono quando la zampina li raggiunge. */
+.rail { --p: 1; --rail-off: var(--color-bark-deep); }
+.rail-step { transition: opacity 0.5s ease; }
 .rail-dot { transition: background-color 0.4s ease, color 0.4s ease, scale 0.55s var(--ease-spring), box-shadow 0.4s ease; }
-.rail[data-rail="on"] .rail-step { transition: opacity 0.5s ease; }
-.rail[data-rail="on"] .rail-step:not(.is-reached) { opacity: 0.42; }
-.rail[data-rail="on"] .rail-step:not(.is-reached) .rail-dot {
-  background: var(--color-bark-deep);
+.has-motion .rail-step:not(.is-reached) { opacity: 0.42; }
+.has-motion .rail-step:not(.is-reached) .rail-dot {
+  background: var(--rail-off);
   color: var(--color-cream-ink);
   scale: 0.86;
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.2), 0 0 0 1px rgb(255 255 255 / 0.12);
 }
 
-/* FAQ: dove il browser lo sa fare, la risposta si apre morbida (altrimenti si apre e basta). */
-@supports (interpolate-size: allow-keywords) {
-  .faq { interpolate-size: allow-keywords; }
-  .faq::details-content { block-size: 0; overflow: hidden; transition: block-size 0.45s var(--ease-soft), content-visibility 0.45s allow-discrete; }
-  .faq[open]::details-content { block-size: auto; }
+/* FAQ (details[data-accordion]): mentre si chiude l'icona torna subito "+". */
+.faq[data-closing] summary i { rotate: 0deg; background-color: rgb(255 255 255 / 0.75); }
+
+/* Le stories nel telefono (data-stories): con lo script le slide vivono
+   dentro lo schermo, una sopra l'altra; il ritaglio arrotondato nasconde
+   quella in arrivo e quella che se ne va. Senza script: una lista di card. */
+.is-story .story-slides { position: relative; display: block; height: min(50svh, 440px); clip-path: inset(0 round 26px); }
+.is-story .story-slide { position: absolute; inset: 0; transform-origin: 50% 60%; }
+@media (min-width: 1024px) {
+  .is-story { min-height: 100svh; display: flex; align-items: center; }
+  .is-story > .wrap { width: 100%; }
+  .is-story .story-slides { height: min(58svh, 520px); }
 }
 
-/* La frase che si accende parola per parola (ScrubText.tsx). */
-.scrub[data-scrub="on"] > span { opacity: clamp(0.2, calc(var(--lit, 0) - var(--i)), 1); transition: opacity 0.18s linear; }
+/* Card che si impilano (data-stack): sticky già senza script; il motore
+   rimpicciolisce e scurisce (--dim) quella sotto mentre arriva la prossima. */
+.stack-card { --dim: 0; position: sticky; top: calc(96px + var(--i, 0) * 26px); transform-origin: 50% 0; }
+.stack-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: #0b0e07;
+  opacity: var(--dim);
+  pointer-events: none;
+}
+
+/* Il sentiero (data-trail, chi sono): senza script un filo dritto dietro ai
+   pallini; con lo script (.has-trail) i pallini si sfalsano, il sentiero
+   serpeggia e le impronte lo percorrono. I pallini stanno al loro posto con
+   il layout (niente translate): il motore misura offsetLeft/offsetTop. */
+.trail { position: relative; }
+.trail::before { content: ''; position: absolute; left: 21px; top: 24px; bottom: 24px; border-left: 2px dotted rgb(241 242 234 / 0.35); }
+.trail.has-trail::before { display: none; }
+.trail-svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.trail-svg path { fill: none; stroke: rgb(241 242 234 / 0.3); stroke-width: 3; stroke-linecap: round; stroke-dasharray: 0.1 12; }
+.trail-paws { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
+.trail-paw {
+  position: absolute;
+  width: 24px;
+  height: 21px;
+  margin: -10.5px 0 0 -12px;
+  color: var(--color-peach);
+  rotate: var(--a, 0deg);
+  opacity: 0;
+  scale: 0.3;
+  transition: opacity 0.35s ease, scale 0.5s cubic-bezier(0.34, 1.8, 0.64, 1);
+}
+.trail-paw.is-on { opacity: 0.95; scale: 1; }
+.trail-paw svg { display: block; width: 100%; height: 100%; }
+.trail-steps { position: relative; z-index: 2; display: flex; flex-direction: column; gap: 28px; }
+.trail-step { position: relative; padding-left: 66px; }
+.trail-dot {
+  position: absolute;
+  left: 0;
+  top: 22px;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 9999px;
+  border: 1px solid rgb(255 255 255 / 0.7);
+  background: var(--color-peach);
+  color: var(--color-ink);
+  box-shadow: var(--shadow-night-s);
+  transition: background-color 0.4s ease, color 0.4s ease, scale 0.55s var(--ease-spring);
+}
+.trail-card { transition: opacity 0.6s ease, translate 0.7s cubic-bezier(0.2, 0.8, 0.2, 1), scale 0.7s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.has-trail .trail-step:nth-child(even) .trail-dot { left: 14px; }
+/* Le tappe non ancora raggiunte aspettano in penombra. */
+.has-trail .trail-step:not(.is-reached) .trail-dot { background: var(--color-bark-deep); color: var(--color-cream-ink); scale: 0.8; }
+.has-trail .trail-step:not(.is-reached) .trail-card { opacity: 0.22; translate: 0 24px; scale: 0.97; }
+@media (min-width: 768px) {
+  .trail::before { left: 50%; margin-left: -1px; }
+  .trail-steps { gap: 0; }
+  .trail-step { display: grid; grid-template-columns: 1fr 22% 1fr; align-items: start; padding-left: 0; }
+  .trail-step + .trail-step { margin-top: -26px; }
+  .trail-step:nth-child(odd) .trail-card { grid-column: 1; grid-row: 1; }
+  .trail-step:nth-child(even) .trail-card { grid-column: 3; grid-row: 1; }
+  .trail-dot, .has-trail .trail-step:nth-child(even) .trail-dot {
+    position: relative;
+    left: auto;
+    top: auto;
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: center;
+    margin-top: 30px;
+    width: 54px;
+    height: 54px;
+  }
+  /* Il pallino si accosta alla sua tappa: il sentiero serpeggia. */
+  .has-trail .trail-step:nth-child(odd) .trail-dot { justify-self: start; margin-left: 10px; }
+  .has-trail .trail-step:nth-child(even) .trail-dot { justify-self: end; margin-right: 10px; }
+  .trail-paw { width: 28px; height: 25px; margin: -12.5px 0 0 -14px; }
+}
 
 /* =====================================================================
    Konsta: le parti "app" nei colori del sito

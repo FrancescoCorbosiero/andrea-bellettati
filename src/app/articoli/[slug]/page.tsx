@@ -97,7 +97,7 @@ export default async function ArticoloPage(props: PageProps<'/articoli/[slug]'>)
             <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
               <div className="flex flex-col items-start gap-4">
                 <span className="eyebrow">Continua a leggere</span>
-                <h2 id="related-title" className="display-md">
+                <h2 id="related-title" className="display-md" data-split>
                   Potrebbero <span className="script">interessarti.</span>
                 </h2>
               </div>
@@ -105,7 +105,7 @@ export default async function ArticoloPage(props: PageProps<'/articoli/[slug]'>)
                 Tutti gli articoli <ArrowIcon size={15} />
               </Link>
             </div>
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3" data-reveal="stagger">
               {related.map((r) => (
                 <ArticleCard key={r.slug} article={r} />
               ))}
@@ -117,7 +117,7 @@ export default async function ArticoloPage(props: PageProps<'/articoli/[slug]'>)
       <section className="on-dark section-tight" style={{ background: 'radial-gradient(60% 70% at 85% 0%, rgb(255 255 255 / 0.14), rgb(255 255 255 / 0) 70%), var(--color-sage)' }}>
         <div className="wrap flex flex-col items-start gap-5 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex flex-col gap-3">
-            <h2 className="display-md">
+            <h2 className="display-md" data-split>
               Hai una domanda
               <br />
               sul tuo animale?

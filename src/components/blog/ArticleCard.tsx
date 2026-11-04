@@ -48,11 +48,11 @@ export default function ArticleCard({ article, headingLevel = 'h3' }: { article:
   const cls = 'slab slab-lift flex h-full flex-col overflow-hidden !rounded-[24px]';
   if (!href) return <div className={`${cls} opacity-80`}>{inner}</div>;
   return article.externalUrl ? (
-    <a href={href} target="_blank" rel="noopener" className={cls}>
+    <a href={href} target="_blank" rel="noopener" className={cls} data-tilt>
       {inner}
     </a>
   ) : (
-    <Link href={href} className={cls}>
+    <Link href={href} className={cls} data-tilt>
       {inner}
     </Link>
   );
