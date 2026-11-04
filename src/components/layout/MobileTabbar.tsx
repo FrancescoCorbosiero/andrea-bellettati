@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useEffect } from 'react';
 import { Tabbar, TabbarLink, ToolbarPane } from 'konsta/react';
 import { BookOpen, Compass, House, LayoutGrid, PawPrint } from 'lucide-react';
 import { useApp } from '@/components/app/AppProvider';
@@ -17,6 +18,12 @@ export default function MobileTabbar() {
   const { openMenu, menuOpen, consultOpen } = useApp();
   const on = (href: string) => (href === '/' ? pathname === '/' : pathname.startsWith(href));
   const nothingOpen = !menuOpen && !consultOpen;
+
+  // Konsta mette role="link" su ogni voce della barra, anche sui bottoni:
+  // "Menu" apre un foglio, per i lettori di schermo è un bottone.
+  useEffect(() => {
+    document.querySelector('[data-menu-button]')?.setAttribute('role', 'button');
+  });
 
   return (
     <div className="lg:hidden">
@@ -58,7 +65,7 @@ export default function MobileTabbar() {
         />
         <TabbarLink
           component="button"
-          linkProps={{ type: 'button' }}
+          linkProps={{ type: 'button', 'data-menu-button': '' }}
           onClick={openMenu}
           active={menuOpen}
           aria-haspopup="dialog"

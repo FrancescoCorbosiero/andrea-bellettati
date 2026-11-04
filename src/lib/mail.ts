@@ -5,6 +5,7 @@ import { SESv2Client, SendEmailCommand } from '@aws-sdk/client-sesv2';
  *   AWS_REGION, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY  (catena credenziali dell'SDK)
  *   SES_FROM        mittente VERIFICATO, es. "Sito Andrea <sito@andreabellettati.it>"
  *   SES_TO          destinatari, separati da virgola o punto e virgola
+ *   SES_CONFIGURATION_SET  facoltativo: metriche e rimbalzi in SES
  *   SES_DRY_RUN     "true": non invia, stampa l'email nei log (prove, staging)
  * Senza configurazione l'invio risponde `unconfigured` e il sito offre
  * WhatsApp, l'app di posta e il telefono.
@@ -51,6 +52,7 @@ export async function sendMail(msg: {
     await ses(cfg.region).send(
       new SendEmailCommand({
         FromEmailAddress: cfg.from,
+        ConfigurationSetName: process.env.SES_CONFIGURATION_SET || undefined,
         Destination: { ToAddresses: to },
         ReplyToAddresses: msg.replyTo ? [msg.replyTo] : undefined,
         Content: {
