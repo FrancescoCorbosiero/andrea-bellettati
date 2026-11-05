@@ -109,6 +109,10 @@ principale resta bloccato (TBT, come Lighthouse): telefono medio simulato
 | Lavora con noi | 279 ms | 82 ms | 67 ms |
 | Chi sono | 424 ms | 58 ms | 59 ms |
 
+I numeri valgono come confronto dentro la stessa sessione di misura: la stessa
+build, rimisurata ore dopo su una macchina più lenta, dà valori fino a 1,8
+volte più alti.
+
 FCP e LCP non cambiano (la pagina è HTML statico e si vede subito). Le scelte
 che hanno fatto la differenza:
 
@@ -129,6 +133,28 @@ che hanno fatto la differenza:
 - **Il codice dei fogli al primo segno di intenzione**: prima si precaricava
   a pagina ferma, ed erano 180–300 KB da compilare anche per chi legge e
   basta (e sulla pagina della consulenza, che ha il questionario in pagina).
+
+**Perché il motore parte dopo l'idratazione, e non prima.** Su un telefono
+medio, dal primo disegno della pagina all'avvio del motore il thread
+principale è sempre occupato: è lavoro di CPU, non attesa della rete.
+- **React e Next:** più della metà, per l'idratazione.
+- **Stili e layout:** tra il 10 e il 30%.
+- **Il motore:** il 10–15%, quasi tutto la compilazione di GSAP alla prima visita.
+
+Si è provato a far partire l'import prima dell'idratazione, da
+`instrumentation-client.ts`:
+
+- **rete veloce:** l'idratazione finisce 0,16–0,27 s più tardi e le animazioni
+  partono quando partivano (±0,1 s);
+- **rete mobile lenta** (150 ms, 1,6 Mbit/s): le animazioni partono circa
+  0,85 s prima, perché lo scaricamento si sovrappone all'idratazione. La
+  pagina però diventa interattiva fino a 0,2 s dopo.
+
+Il motore resta dopo l'idratazione: prima la pagina che risponde, poi gli
+effetti. Lo scaricamento lo accorciano la CDN e la cache del browser: il file
+ha l'hash nel nome e resta in cache un anno. Un import nel modulo di
+`SmoothScroll` invece non anticipa niente, perché React valuta quel modulo solo
+verso la fine dell'idratazione.
 
 Il sito Astro, per confronto, compilava il suo motore GSAP all'avvio: 287–475
 ms di TBT sulle stesse pagine.

@@ -182,6 +182,20 @@ Per tenerlo leggero (le misure sono in `docs/decisioni.md`):
 - Il codice dei fogli (questionario, menu) arriva al primo segno di
   intenzione: puntatore sopra il link, dito che tocca, focus.
 
+**In sviluppo le animazioni partono tardi, ed è normale.** `npm run dev`
+compila ogni pagina alla prima visita, manda circa 5 MB di JavaScript non
+minificato (la build 0,8 MB) e usa React di sviluppo. Il motore aspetta che la
+pagina sia idratata, quindi arriva dopo tutto questo. Misurato sulla home:
+1,2 s dall'apertura con il server già caldo, 11 s alla prima compilazione,
+0,5 s con la build. Animazioni e velocità si giudicano sulla build:
+
+```bash
+npm run build && npm run start
+```
+
+`next start` avvisa che con `output: 'standalone'` andrebbe usato
+`node .next/standalone/server.js`: in locale funziona lo stesso.
+
 ## Brand e vetro, in breve
 
 - Palette, font e materiali sono in `src/app/globals.css`: `.btn` (lastra lucida
