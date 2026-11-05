@@ -5,7 +5,7 @@ import { List, ListInput, Preloader } from 'konsta/react';
 import { ChevronLeft, Mail, Phone } from 'lucide-react';
 import { ArrowIcon, WhatsAppIcon } from '@/components/icons';
 import { AMBITI, EMPTY_TEAM, TEMPI, isEmail, isPhone, teamLines, teamSubject, teamWhatsAppText, type TeamDraft } from '@/lib/forms';
-import { PHONE, PHONE_DISPLAY, mailtoLink, waLink } from '@/lib/site';
+import { EMAIL_PARTNER, PHONE, PHONE_DISPLAY, mailtoLink, waLink } from '@/lib/site';
 import { ChipGroup, FieldError, FieldLabel, GroupTitle, SegmentedChoice, StepBar, inputClass, listClass } from './fields';
 import { useFlow, type Errors } from './useFlow';
 
@@ -228,7 +228,7 @@ export default function TeamFlow() {
           <p className="text-[15.5px] font-[750] text-ink">Non sono riuscito a inviarlo da qui.</p>
           <p className="mt-1 text-[14.5px] text-ink-soft">Mandalo in un altro modo, il testo è già pronto:</p>
           <div className="mt-3 flex flex-wrap gap-2">
-            <a className="btn btn-sm" href={mailtoLink(teamSubject(d), waText)}>
+            <a className="btn btn-sm" href={mailtoLink(teamSubject(d), waText, EMAIL_PARTNER)}>
               <Mail size={15} aria-hidden /> Email
             </a>
             <a className="btn btn-ghost btn-sm" href={waLink(waText)} target="_blank" rel="noopener" onClick={() => f.setSent('whatsapp')}>

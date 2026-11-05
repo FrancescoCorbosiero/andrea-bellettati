@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { requestSchema } from '@/lib/forms';
 import { consultConfirmation, consultToAndrea, teamConfirmation, teamToAndrea } from '@/lib/emails';
-import { isMailConfigured, sendMail } from '@/lib/mail';
+import { isMailConfigured, recipientsFor, sendMail } from '@/lib/mail';
 import { clientIp, rateLimit } from '@/lib/rateLimit';
 
 /* Manda email vere: gira sul server Node, mai in cache. */
@@ -56,8 +56,9 @@ export async function POST(req: Request) {
   }
 
   const p = parsed.data;
+  const box = recipientsFor(p.kind);
   const toAndrea = p.kind === 'consulenza' ? consultToAndrea(p) : teamToAndrea(p);
-  const result = await sendMail(toAndrea);
+  const result = await sendMail({ ...toAndrea, to: box });
   if (!result.ok) {
     refused(`invio fallito: ${result.reason}`);
     return NextResponse.json({ ok: false, error: result.reason }, { status: result.reason === 'unconfigured' ? 503 : 502 });
@@ -65,8 +66,9 @@ export async function POST(req: Request) {
 
   // Conferma a chi ha scritto (se c'è un'email): best effort, non fa fallire la richiesta.
   if (p.email) {
+    // Se risponde alla conferma, la risposta torna alla casella giusta.
     const confirmation = p.kind === 'consulenza' ? consultConfirmation(p) : teamConfirmation(p);
-    await sendMail({ ...confirmation, to: [p.email] });
+    await sendMail({ ...confirmation, to: [p.email], replyTo: box[0] });
   }
 
   return NextResponse.json({ ok: true });

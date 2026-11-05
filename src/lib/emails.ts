@@ -42,11 +42,15 @@ function button(href: string, label: string): string {
   return `<a href="${esc(href)}" style="display:inline-block;margin:6px 8px 6px 0;padding:12px 20px;border-radius:999px;background:${C.peach};color:${C.ink};font-weight:700;font-size:15px;text-decoration:none;">${esc(label)}</a>`;
 }
 
+/** Da dove arriva la richiesta (pagina e campagna): solo nell'email ad Andrea. */
+const withSource = (rows: [string, string][], source: string): [string, string][] =>
+  source ? [...rows, ['Arrivata da', source]] : rows;
+
 const asConsultDraft = (p: ConsultPayload) => ({ ...p, species: p.species, petName: p.petName });
 
 /** Email ad Andrea: nuova richiesta di consulenza. */
 export function consultToAndrea(p: ConsultPayload) {
-  const rows = consultLines(asConsultDraft(p));
+  const rows = withSource(consultLines(asConsultDraft(p)), p.source);
   const wa = waLinkFor(p.phone);
   const subject = consultSubject(p);
   const text = [`Nuova richiesta di consulenza gratuita`, '', ...rows.map(([k, v]) => `${k}: ${v}`), '', wa ? `Rispondi su WhatsApp: ${wa}` : ''].join('\n');
@@ -62,7 +66,7 @@ ${rowsHtml(rows)}
 
 /** Email ad Andrea: qualcuno vuole entrare nel Team. */
 export function teamToAndrea(p: TeamPayload) {
-  const rows = teamLines(p);
+  const rows = withSource(teamLines(p), p.source);
   const wa = waLinkFor(p.phone);
   const subject = teamSubject(p);
   const text = ['Qualcuno vuole entrare nel Team', '', ...rows.map(([k, v]) => `${k}: ${v}`), '', wa ? `Rispondi su WhatsApp: ${wa}` : ''].join('\n');

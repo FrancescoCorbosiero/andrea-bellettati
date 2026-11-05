@@ -725,3 +725,6 @@ h2 .script::after {
 @media (prefers-reduced-transparency: reduce) {
   .btn-ghost, .icon-btn, .slab-frost { background-color: var(--color-paper); -webkit-backdrop-filter: none; backdrop-filter: none; }
 }
+
+/* Pagine delle campagne: nessun header fisso, le ancore non lasciano spazio sopra. */
+html:has([data-campaign]) { scroll-padding-top: 16px; }

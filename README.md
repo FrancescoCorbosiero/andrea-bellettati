@@ -49,17 +49,20 @@ SES_DRY_RUN=true npm run dev
 ```
 src/
   app/
-    layout.tsx               # html, font, header, footer, barra in basso, JSON-LD del sito
+    layout.tsx               # html, font, AppProvider, JSON-LD del sito
     template.tsx             # accende le animazioni di ogni pagina (si rimonta a ogni cambio pagina)
     globals.css              # ⭐ Brand System: token, vetro, bottoni, lastre, testo lungo, tema Konsta, stati delle animazioni
-    page.tsx                 # home
-    consulenza-gratuita/     # pagina della consulenza con il questionario in pagina
-    lavora-con-noi/          # pagina del Team con il flusso "Entra nel Team"
-    approccio/ chi-sono/ servizi/
-    articoli/ [slug]/        # blog (ricerca + categorie) e articolo
-    eventi/ [slug]/          # eventi, pagina evento, calendario.ics
+    (sito)/                  # le pagine del sito; layout.tsx: header, footer, barra in basso
+      page.tsx               # home
+      consulenza-gratuita/   # pagina della consulenza con il questionario in pagina
+      lavora-con-noi/        # pagina del Team con il flusso "Entra nel Team"
+      approccio/ chi-sono/ servizi/
+      articoli/ [slug]/      # blog (ricerca + categorie) e articolo
+      eventi/ [slug]/        # eventi, pagina evento, calendario.ics
+      not-found.tsx          # 404 dentro il sito
+    (campagne)/              # pagine per gli annunci, senza menu: consulenza/ e partner/
     api/richiesta/route.ts   # invio dei questionari (SES)
-    sitemap.ts robots.ts manifest.ts rss.xml/ not-found.tsx
+    sitemap.ts robots.ts manifest.ts rss.xml/ not-found.tsx (404 leggera, solo il marchio)
   components/
     app/                     # guscio da app: AppProvider (fogli, cronologia), MenuSheet
     motion/                  # MotionPage (per pagina) e SmoothScroll (Lenis, ancore, per tutta la visita)
@@ -113,6 +116,13 @@ ore.
 - **Entra nel Team** (`TeamFlow`): chi sei → percorso → progetto → riepilogo.
 - Invio: `POST /api/richiesta` → email ad Andrea (testo + HTML, con il link
   WhatsApp per rispondere) e conferma a chi ha scritto, se ha lasciato l'email.
+  Due caselle: le consulenze a `consulenze@`, il Team a `partners@`
+  (`SES_TO_CONSULENZE`, `SES_TO_PARTNER`). Se chi ha scritto risponde alla
+  conferma, la risposta torna alla stessa casella.
+- **Provenienza**: l'email dice da quale pagina arriva la richiesta e, se la
+  visita è partita da una campagna, i suoi `utm_*`, il clic da Google Ads
+  (`gclid`) o Meta (`fbclid`) e il sito di provenienza (`src/lib/source.ts`,
+  nella scheda del browser, niente cookie).
   Chi sceglie "mandala su WhatsApp" la invia comunque anche per email, in silenzio:
   il contatto non si perde.
 - Protezioni: limite di richieste per IP, campo trappola, tempo minimo di
@@ -122,8 +132,26 @@ ore.
   l'invio è configurato.
 
 Variabili in [`.env.example`](.env.example): `AWS_REGION`, `AWS_ACCESS_KEY_ID`,
-`AWS_SECRET_ACCESS_KEY`, `SES_FROM` (mittente verificato), `SES_TO`,
-`SES_CONFIGURATION_SET`, `SES_DRY_RUN`.
+`AWS_SECRET_ACCESS_KEY`, `SES_FROM` (mittente verificato), `SES_TO_CONSULENZE`,
+`SES_TO_PARTNER`, `SES_CONFIGURATION_SET`, `SES_DRY_RUN`.
+
+## Pagine per le campagne
+
+Due pagine senza menu, senza piè di pagina pieno di link e senza barra in
+basso, per annunci, link in bio e QR: il questionario subito, poco intorno.
+
+| Pagina | Questionario | Casella |
+|---|---|---|
+| `/consulenza` | consulenza gratuita | `consulenze@` |
+| `/partner` | Entra nel Team (con il modello di lavoro dichiarato) | `partners@` |
+
+- Stanno nel gruppo `src/app/(campagne)`, con un layout che ha solo il marchio
+  (non porta alla home) e WhatsApp. Le pagine del sito sono in `src/app/(sito)`.
+- Fuori dai motori di ricerca (`noindex`) e dalla sitemap: le pagine del sito
+  restano `/consulenza-gratuita` e `/lavora-con-noi`.
+- Sul telefono il bottone fisso in basso riporta al questionario.
+- Negli annunci si usano i parametri `utm_*` (es.
+  `/consulenza?utm_source=meta&utm_campaign=autunno`): finiscono nell'email.
 
 ## Deploy
 

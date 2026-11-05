@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { clearDraft, readDraft, sendRequest, writeDraft } from '@/lib/send';
-import type { RequestPayload } from '@/lib/forms';
+import type { RequestInput } from '@/lib/forms';
 import { nudge, stepEnter, successBurst } from '@/lib/motion/fx';
 import { scrollToTarget } from '@/lib/motion/scroll';
 
@@ -31,7 +31,7 @@ export function useFlow<D extends object, K extends string>({
   variant: Variant;
   /** Gli errori di un passo (vuoto = si può andare avanti). */
   validate: (step: number, draft: D) => Errors<K>;
-  toPayload: (draft: D) => RequestPayload;
+  toPayload: (draft: D) => RequestInput;
 }) {
   const uid = useId();
   const [draft, setDraft] = useState<D>(empty);
