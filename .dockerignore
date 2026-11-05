@@ -8,3 +8,5 @@ npm-debug.log*
 *.tsbuildinfo
 docs
 README.md
+# script di deploy (e il token di Cloudflare): non servono all'immagine
+deploy

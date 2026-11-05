@@ -134,7 +134,8 @@ Il sito Astro, per confronto, compilava il suo motore GSAP all'avvio: 287–475
 ms di TBT sulle stesse pagine.
 
 Dietro la CDN (header verificati sulla build, vedi `cdn-caching.md` nella
-documentazione di Next 16):
+documentazione di Next 16; per Cloudflare regole e script sono in
+[`cloudflare.md`](cloudflare.md)):
 
 - Pagine statiche `s-maxage=31536000`; home ed eventi `s-maxage=43200,
   stale-while-revalidate` (si rigenerano ogni 12 ore); `/_next/static` e le
@@ -149,3 +150,19 @@ documentazione di Next 16):
 - `/_next/image` sceglie AVIF, WebP o JPEG dall'header `Accept` e risponde
   `Vary: Accept`: la CDN deve variare su `Accept` (o normalizzarlo), altrimenti
   un browser senza AVIF potrebbe ricevere un AVIF.
+
+## Cloudflare: cosa sta in cache
+
+Cloudflare tiene in cache HTML, RSC e file di Next seguendo il `Cache-Control`
+del sito (e niente cache dove il sito non lo dice). Restano fuori:
+
+- le API;
+- le richieste RSC incoerenti, che metterebbero l'HTML al posto dell'RSC;
+- `/_next/image`.
+
+Le immagini restano fuori perché lo stesso indirizzo dà AVIF, WebP o JPEG
+secondo il browser, e sui piani Free e Pro Cloudflare non può tenerne le
+varianti separate. Il browser le conserva comunque per 10 anni.
+
+Ogni deploy si chiude svuotando la cache. Il limite di invii dei questionari
+legge l'IP da `CF-Connecting-IP`. Dettagli e perché in [`cloudflare.md`](cloudflare.md).

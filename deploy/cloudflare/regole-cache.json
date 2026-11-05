@@ -1,0 +1,41 @@
+{
+  "rules": [
+    {
+      "description": "Sito: HTML, RSC e file di Next secondo il loro Cache-Control (senza Cache-Control niente cache)",
+      "expression": "(http.host eq \"__DOMINIO__\")",
+      "action": "set_cache_settings",
+      "action_parameters": {
+        "cache": true,
+        "edge_ttl": { "mode": "bypass_by_default" },
+        "browser_ttl": { "mode": "respect_origin" },
+        "cache_key": { "cache_deception_armor": true, "ignore_query_strings_order": false }
+      },
+      "enabled": true
+    },
+    {
+      "description": "File di public/ (icone, favicon, immagine per i social): un giorno sulla CDN, si svuota a ogni deploy",
+      "expression": "(http.host eq \"__DOMINIO__\" and (starts_with(http.request.uri.path, \"/icons/\") or starts_with(http.request.uri.path, \"/og/\") or http.request.uri.path eq \"/favicon.ico\"))",
+      "action": "set_cache_settings",
+      "action_parameters": {
+        "cache": true,
+        "edge_ttl": { "mode": "override_origin", "default": 86400 },
+        "browser_ttl": { "mode": "respect_origin" }
+      },
+      "enabled": true
+    },
+    {
+      "description": "Mai in cache: API, immagini ottimizzate (cambiano formato con l'header Accept), certificati di Caddy",
+      "expression": "(http.host eq \"__DOMINIO__\" and (starts_with(http.request.uri.path, \"/api/\") or http.request.uri.path eq \"/_next/image\" or starts_with(http.request.uri.path, \"/.well-known/\")))",
+      "action": "set_cache_settings",
+      "action_parameters": { "cache": false },
+      "enabled": true
+    },
+    {
+      "description": "Mai in cache: richieste RSC incoerenti (_rsc senza intestazione rsc, o il contrario), per non scambiare HTML e RSC",
+      "expression": "(http.host eq \"__DOMINIO__\" and ((http.request.uri.query contains \"_rsc\" and not any(http.request.headers[\"rsc\"][*] eq \"1\")) or (any(http.request.headers[\"rsc\"][*] eq \"1\") and not (http.request.uri.query contains \"_rsc\"))))",
+      "action": "set_cache_settings",
+      "action_parameters": { "cache": false },
+      "enabled": true
+    }
+  ]
+}

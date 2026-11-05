@@ -75,7 +75,8 @@ src/
     motion/                  # ⭐ animazioni: engine.ts (GSAP + Lenis, caricato dopo la pagina), fx.ts (effetti senza librerie), scroll.ts (Lenis per il resto del sito)
     emails.ts mail.ts rateLimit.ts seo.ts dates.ts
   assets/                    # foto (next/image) · fonts/ font self-hosted
-docs/                        # spec, decisioni, web app futura
+docs/                        # spec, decisioni, Cloudflare, web app futura
+deploy/cloudflare/           # regole di cache per Cloudflare e script (regole, svuota, verifica)
 ```
 
 ## Contenuti: articoli ed eventi
@@ -136,6 +137,18 @@ docker compose up -d --build
 
 `NEXT_PUBLIC_SITE_URL` (URL assoluti, sitemap, Open Graph) entra al build come
 argomento: cambiarlo richiede `--build`.
+
+**Con Cloudflare davanti** (guida in [`docs/cloudflare.md`](docs/cloudflare.md)):
+le regole di cache si applicano una volta, e dopo ogni deploy si svuota la cache,
+perché l'HTML resta sulla CDN fino a un anno.
+
+```bash
+deploy/cloudflare/cloudflare.sh regole       # una volta (token in deploy/cloudflare/cloudflare.env)
+```
+
+```bash
+deploy/cloudflare/cloudflare.sh svuota --si  # dopo ogni docker compose up -d --build
+```
 
 ## Animazioni
 
