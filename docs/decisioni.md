@@ -164,5 +164,14 @@ Le immagini restano fuori perché lo stesso indirizzo dà AVIF, WebP o JPEG
 secondo il browser, e sui piani Free e Pro Cloudflare non può tenerne le
 varianti separate. Il browser le conserva comunque per 10 anni.
 
-Ogni deploy si chiude svuotando la cache. Il limite di invii dei questionari
-legge l'IP da `CF-Connecting-IP`. Dettagli e perché in [`cloudflare.md`](cloudflare.md).
+Tutto questo è automatico. Il servizio `cloudflare` di `docker-compose.yml`
+parte a ogni deploy e, quando il dominio pubblico serve la build nuova:
+
+- allinea regole e impostazioni della zona;
+- svuota la cache solo se la build è cambiata.
+
+Senza token non fa nulla. Le regole create da altri non le tocca. Se il piano
+rifiuta l'intestazione nella regola RSC, ripiega da solo.
+
+Il limite di invii dei questionari legge l'IP da `CF-Connecting-IP`. Dettagli e
+perché in [`cloudflare.md`](cloudflare.md).

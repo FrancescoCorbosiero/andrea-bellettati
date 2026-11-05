@@ -5,7 +5,7 @@
 #
 #   docker network create caddy        # una volta sola, se non esiste
 #   cp .env.example .env               # e compila dominio + credenziali SES
-#   docker compose up -d --build
+#   docker compose up -d --build       # con Cloudflare svuota anche la cache
 # =====================================================================
 services:
   web:
@@ -33,6 +33,35 @@ services:
       caddy_1: ${SITE_DOMAIN_ALT}
       caddy_1.redir: "https://${SITE_DOMAIN}{uri} permanent"
 
+  # Cloudflare davanti al sito (facoltativo, docs/cloudflare.md). Parte da solo
+  # a ogni "docker compose up -d --build": quando il sito nuovo risponde anche
+  # dal dominio pubblico allinea regole di cache e impostazioni della zona, poi
+  # svuota la cache (solo se la build è cambiata). Senza
+  # deploy/cloudflare/cloudflare.env non fa nulla.
+  # Log: docker compose logs cloudflare · A mano: docker compose run --rm cloudflare svuota
+  cloudflare:
+    image: node:22-alpine
+    entrypoint: ["node", "/cloudflare/sync.mjs"]
+    command: ["deploy"]
+    volumes:
+      - ./deploy/cloudflare:/cloudflare:ro
+      - cloudflare-stato:/stato
+    env_file:
+      - path: ./deploy/cloudflare/cloudflare.env
+        required: false
+    environment:
+      SITE_DOMAIN: ${SITE_DOMAIN}
+      ORIGIN_URL: http://web:3000
+    networks:
+      - caddy
+    depends_on:
+      - web
+    restart: "no"
+
 networks:
   caddy:
     external: true
+
+volumes:
+  # L'ultima build per cui si è svuotata la cache: un "up" senza build nuova non svuota.
+  cloudflare-stato:

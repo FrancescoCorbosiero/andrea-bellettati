@@ -2,26 +2,55 @@
 
 Quasi tutto il sito è statico: Cloudflare può tenere in cache l'HTML, i dati dei
 cambi pagina (RSC) e i file di Next, e il server lavora solo per le API e le
-immagini. Qui trovi:
+immagini. La zona è sul piano **Free** ed è dedicata a questo sito.
 
-- cosa va in cache e cosa no;
-- le regole;
-- le impostazioni della zona;
-- lo svuotamento a ogni deploy.
+**Funziona da sé a ogni deploy.** Il servizio `cloudflare` di
+`docker-compose.yml` parte con il solito `docker compose up -d --build`. Quando
+il sito nuovo risponde anche dal dominio pubblico:
 
-Le regole sono in [`deploy/cloudflare/regole-cache.json`](../deploy/cloudflare/regole-cache.json)
-e si applicano con [`deploy/cloudflare/cloudflare.sh`](../deploy/cloudflare/cloudflare.sh)
-(o a mano dal pannello, sotto).
+1. allinea le regole di cache ([`deploy/cloudflare/regole-cache.json`](../deploy/cloudflare/regole-cache.json));
+2. allinea le impostazioni della zona;
+3. svuota la cache, solo se la build è cambiata.
 
-> Preparato sulla documentazione di Cloudflare e sugli header che la build manda
-> davvero, ma non provato su una zona vera: dopo la prima attivazione lancia
-> `deploy/cloudflare/cloudflare.sh verifica` (in fondo, cosa aspettarsi).
+Il codice è in [`deploy/cloudflare/sync.mjs`](../deploy/cloudflare/sync.mjs), Node
+senza dipendenze, nella stessa immagine `node:22-alpine` del Dockerfile. Senza
+il file con il token il servizio non fa nulla, e il deploy funziona come prima.
 
-## In breve
+> Provato contro una finta API di Cloudflare e il sito vero in locale. Non è
+> provato su una zona vera: dopo il primo deploy guarda i log e lancia la
+> verifica (in fondo).
+
+## Da fare una volta sola
+
+1. **Il token.** Cloudflare → My Profile → API Tokens → Create Token → *Custom token*.
+   - **Permessi:**
+     - Zone · Cache Rules · Edit
+     - Zone · Zone Settings · Edit
+     - Zone · Cache Purge · Purge
+   - **Zone Resources:** solo la zona del sito.
+
+   Con il solo Cache Purge il deploy svuota la cache e salta il resto (lo dice nel log).
+2. **Il file.** `cp deploy/cloudflare/cloudflare.env.example deploy/cloudflare/cloudflare.env`, poi compila token e Zone ID (Panoramica del dominio, colonna di destra). Il file resta fuori da git e fuori dall'immagine del sito: il token non finisce nel container del sito.
+3. **Il proxy.** Nei DNS della zona, i record del dominio e del `www` in arancione (*Proxied*).
+
+Poi il solito deploy:
+
+```bash
+docker compose up -d --build
+```
+
+```bash
+docker compose logs cloudflare
+```
+
+Nel log ci sono i passi del deploy: le regole («già a posto» o «aggiornate»), le
+impostazioni cambiate, «cache svuotata» oppure «build … già pubblicata».
+
+## Cosa sta in cache
 
 | Cosa | Dove | Su Cloudflare | Perché |
 |---|---|---|---|
-| Pagine e cambi pagina (HTML e RSC) | tutto il sito | in cache come dice il sito: un anno le pagine statiche, 12 ore home ed eventi | sono statiche; si svuota a ogni deploy |
+| Pagine e cambi pagina (HTML e RSC) | tutto il sito | come dice il sito: un anno le pagine statiche, 12 ore home ed eventi | sono statiche; si svuota a ogni deploy |
 | File di Next con hash | `/_next/static/` | un anno | il nome cambia a ogni build |
 | Icone, favicon, immagine per i social | `/icons/`, `/og/`, `/favicon.ico` | un giorno | Next li manda con `max-age=0` |
 | Immagini ottimizzate | `/_next/image` | mai | vedi «Perché così»; il browser le tiene comunque 10 anni |
@@ -29,135 +58,86 @@ e si applicano con [`deploy/cloudflare/cloudflare.sh`](../deploy/cloudflare/clou
 | Richieste RSC incoerenti | `?_rsc=` senza intestazione `rsc`, o il contrario | mai | l'HTML finirebbe in cache al posto dell'RSC |
 | 404, errori, risposte senza `Cache-Control` | — | mai | Next le manda `no-store` |
 
-## Prima di accendere il proxy (nuvola arancione)
+## Le regole
 
-Dal pannello della zona:
+Quattro regole in **Caching → Cache Rules** (il piano Free ne ammette 10).
+Quando più regole valgono per la stessa richiesta si sommano, e per le
+impostazioni in conflitto vince l'ultima: per questo le eccezioni stanno in fondo.
 
-- **SSL/TLS → Full (strict).** Caddy ha un certificato vero (Let's Encrypt).
-- **SSL/TLS → Edge Certificates → Always Use HTTPS: spento.**
-  - Caddy rinnova i certificati con la sfida HTTP sulla porta 80. Se Cloudflare reindirizza a HTTPS prima, i rinnovi falliscono.
-  - Il passaggio a HTTPS lo fa già Caddy, con HSTS.
-- **Speed → Rocket Loader: spento.** Riscrive i tag `<script>`: la pagina diventerebbe interattiva tardi o male.
-- **Scrape Shield → Email Address Obfuscation: spento.** Cambia i link `mailto:` nell'HTML, e React trova un HTML diverso da quello che si aspetta (errori di idratazione). L'email di Andrea è nel footer, nella pagina della consulenza e nei questionari.
-- **Caching → Configuration → Browser Cache TTL: Respect Existing Headers.**
-- Consigliati: **Caching → Tiered Cache → Smart Tiered Cache** (meno richieste al server). HTTP/3 e Brotli sono già accesi.
+1. **Sito secondo il suo Cache-Control.**
+   - Espressione: `(http.host eq "DOMINIO")`
+   - Eligible for cache.
+   - Edge TTL: *Use cache-control header if present, bypass cache if not*.
+   - Browser TTL: *Respect origin*.
+   - Cache deception armor acceso. La query string resta nella chiave di cache (serve per `_rsc`).
+2. **File di public/.**
+   - Espressione: `/icons/`, `/og/`, `/favicon.ico`.
+   - Eligible for cache.
+   - Edge TTL di 1 giorno, ignorando il `Cache-Control`.
+3. **Mai in cache.** `/api/`, `/_next/image` e `/.well-known/` (i certificati di Caddy): *Bypass cache*.
+4. **Mai in cache: RSC incoerenti.** Le richieste con `_rsc` ma senza intestazione `rsc: 1`, o il contrario: *Bypass cache*.
 
-Rocket Loader, offuscamento delle email e Browser Cache TTL li imposta anche lo
-script, insieme alle regole.
+Le espressioni complete sono nel JSON. Tutte le regole hanno la descrizione che
+comincia con `andrea-bellettati ·`. Se sulla zona trova regole di cache create
+da altri, il deploy **non le tocca** e lo scrive nel log (per sostituirle:
+`CLOUDFLARE_REGOLE=sovrascrivi`).
 
-## Le regole di cache
+Sul piano Free la regola 4 usa un'intestazione della richiesta. Se Cloudflare
+la rifiutasse, il deploy ripiega da solo sulla variante di riserva, scritta nel
+JSON: tutte le richieste con `_rsc` restano fuori dalla cache. Funziona sempre,
+ma i cambi pagina passano dal server.
 
-Si creano in **Caching → Cache Rules**, in quest'ordine. Se più regole valgono
-per la stessa richiesta, si sommano, e per le impostazioni in conflitto vince
-l'ultima: per questo le eccezioni stanno in fondo. Al posto di `DOMINIO` va il
-dominio del sito (`SITE_DOMAIN` nel `.env`).
+## Le impostazioni della zona
 
-**1. Sito secondo il suo Cache-Control**
+Il deploy le controlla e cambia solo quelle diverse:
 
-```
-(http.host eq "DOMINIO")
-```
+| Impostazione | Valore | Perché |
+|---|---|---|
+| SSL/TLS | Full (strict) | Caddy ha un certificato vero. Con «Flexible» Cloudflare parlerebbe al sito in HTTP, Caddy rimanderebbe a HTTPS, all'infinito. |
+| Always Use HTTPS | spento | Caddy ottiene e rinnova i certificati con la sfida HTTP sulla porta 80, e fa già da sé il passaggio a HTTPS, con HSTS. |
+| Rocket Loader | spento | riscrive i tag `<script>`: la pagina diventerebbe interattiva tardi o male |
+| Email Address Obfuscation | spento | cambia i link `mailto:` nell'HTML: React trova un HTML diverso da quello che si aspetta (errori di idratazione) |
+| Browser Cache TTL | Respect Existing Headers | il browser segue le intestazioni del sito |
 
-- **Cache eligibility:** Eligible for cache.
-- **Edge TTL:** *Use cache-control header if present, bypass cache if not*.
-- **Browser TTL:** *Respect origin*.
-- **Cache key:** Cache deception armor acceso; la query string resta tutta nella chiave (è il default, e serve per `_rsc`).
+Consigliato a mano: **Caching → Tiered Cache → Smart Tiered Cache** (meno
+richieste al server). HTTP/3 e Brotli sono già accesi.
 
-**2. File di public/: un giorno**
+## A mano
 
-```
-(http.host eq "DOMINIO" and (starts_with(http.request.uri.path, "/icons/") or starts_with(http.request.uri.path, "/og/") or http.request.uri.path eq "/favicon.ico"))
-```
-
-- **Cache eligibility:** Eligible for cache.
-- **Edge TTL:** *Ignore cache-control header and use this TTL*, 1 giorno.
-- **Browser TTL:** *Respect origin*.
-
-**3. Mai in cache: API, immagini ottimizzate, certificati**
-
-```
-(http.host eq "DOMINIO" and (starts_with(http.request.uri.path, "/api/") or http.request.uri.path eq "/_next/image" or starts_with(http.request.uri.path, "/.well-known/")))
-```
-
-- **Cache eligibility:** Bypass cache.
-
-**4. Mai in cache: richieste RSC incoerenti**
-
-```
-(http.host eq "DOMINIO" and ((http.request.uri.query contains "_rsc" and not any(http.request.headers["rsc"][*] eq "1")) or (any(http.request.headers["rsc"][*] eq "1") and not (http.request.uri.query contains "_rsc"))))
-```
-
-- **Cache eligibility:** Bypass cache.
-
-**Via API**, le stesse quattro regole più le impostazioni della zona:
+Dalla cartella del sito, sul server:
 
 ```bash
-deploy/cloudflare/cloudflare.sh regole --prova   # mostra le richieste, non manda niente
+docker compose run --rm cloudflare verifica   # cosa risponde Cloudflare sulle pagine chiave
 ```
 
 ```bash
-deploy/cloudflare/cloudflare.sh regole           # chiede conferma, poi applica
-```
-
-Attenzione: le regole dello script **sostituiscono tutte** le regole di cache
-della zona. Se sulla zona ci sono altri siti con regole loro, aggiungi queste a
-mano dal pannello.
-
-## Il token per lo script
-
-Cloudflare → My Profile → API Tokens → Create Token → *Custom token*:
-
-- **Permessi:**
-  - Zone · Cache Rules · Edit
-  - Zone · Zone Settings · Edit
-  - Zone · Cache Purge · Purge
-- **Zone Resources:** solo la zona del sito.
-
-Token e Zone ID vanno in `deploy/cloudflare/cloudflare.env` (modello in
-`cloudflare.env.example`, il file resta fuori da git). Non vanno nel `.env` del
-sito, così il token non finisce nel container.
-
-## A ogni deploy: svuota la cache
-
-Le pagine restano su Cloudflare fino a un anno. Dopo un deploy l'HTML vecchio
-punterebbe ai file della build vecchia, che il nuovo container non ha più.
-Quindi, appena il nuovo container risponde:
-
-```bash
-docker compose up -d --build
+docker compose run --rm cloudflare svuota     # svuota la cache adesso
 ```
 
 ```bash
-deploy/cloudflare/cloudflare.sh svuota --si
+docker compose run --rm cloudflare regole --prova   # mostra cosa cambierebbe, senza cambiare
 ```
 
-Vale anche per articoli ed eventi nuovi: entrano con la build, quindi con un deploy.
+`verifica` fa due richieste per ogni indirizzo e mostra `cf-cache-status`:
 
-## Verifica
-
-```bash
-deploy/cloudflare/cloudflare.sh verifica
-```
-
-Fa due richieste per ogni indirizzo chiave e mostra `cf-cache-status` (cosa ha
-fatto Cloudflare) accanto al `Cache-Control` del sito. Cosa aspettarsi:
-
-| Indirizzo | `cf-cache-status` alla seconda richiesta |
+| Indirizzo | Alla seconda richiesta |
 |---|---|
 | `/`, `/approccio`, un file in `/_next/static/` | `HIT` |
 | un'immagine in `/_next/image` | `BYPASS` (o `DYNAMIC`) |
 | `/api/richiesta` | `BYPASS` (o `DYNAMIC`) |
 | `/approccio?_rsc=verifica` (senza intestazione `rsc`) | `BYPASS` |
 
-Se l'ultima riga dice `HIT`, la regola 4 non è attiva. Se Cloudflare rifiuta
-l'espressione con `http.request.headers` sul tuo piano, sostituiscila con la
-versione senza intestazioni:
+## Come lavora il deploy
 
-```
-(http.host eq "DOMINIO" and http.request.uri.query contains "_rsc")
-```
+1. Aspetta che il container nuovo risponda (`http://web:3000`) e ne legge il build ID dall'HTML.
+2. Allinea regole e impostazioni. Un errore qui (per esempio un permesso che manca al token) si scrive nel log ma non ferma niente.
+3. Se il build ID è lo stesso dell'ultimo svuotamento (salvato nel volume `cloudflare-stato`), si ferma: un `docker compose up -d` senza build nuova non svuota.
+4. Aspetta che il dominio pubblico serva la build nuova, chiedendo un indirizzo che non è in cache (`/?cf-sync=<build>`). Così sa che Caddy ha già girato il traffico sul container nuovo.
+5. Svuota tutta la cache e si segna la build.
 
-Funziona sempre, ma lascia fuori dalla cache tutti i cambi pagina.
+Perché svuotare: le pagine restano su Cloudflare fino a un anno. Dopo un deploy
+l'HTML vecchio punterebbe ai file della build vecchia, che il container nuovo
+non ha più. Vale anche per articoli ed eventi nuovi, che entrano con la build.
 
 ## Perché così
 
@@ -166,13 +146,13 @@ Funziona sempre, ma lascia fuori dalla cache tutti i cambi pagina.
   `_rsc=<hash>` nell'indirizzo: con la query string nella chiave di cache, ogni
   variante ha la sua voce. Resta un caso: chi chiede `?_rsc=…` **senza**
   intestazione (un bot) riceve l'HTML con `s-maxage` di un anno. La regola 4 lo
-  tiene fuori dalla cache, altrimenti l'HTML finirebbe al posto dell'RSC e i
-  cambi pagina diventerebbero ricaricamenti completi. Se l'intestazione c'è ma
-  `_rsc` manca o è sbagliato, Next risponde 307 senza `Cache-Control`, quindi
-  nemmeno quello va in cache.
+  tiene fuori, altrimenti l'HTML finirebbe al posto dell'RSC e i cambi pagina
+  diventerebbero ricaricamenti completi. Se l'intestazione c'è ma `_rsc` manca o
+  è sbagliato, Next risponde 307 senza `Cache-Control`, quindi nemmeno quello va
+  in cache.
 - **Immagini.** `/_next/image` dà AVIF, WebP o JPEG allo stesso indirizzo, a
   seconda del browser (`Vary: Accept`).
-  - «Vary for Images» di Cloudflare (Pro e sopra) vuole l'estensione nel percorso, e qui sta nella query.
+  - «Vary for Images» di Cloudflare (dal piano Pro) vuole l'estensione nel percorso, e qui sta nella query.
   - Aggiungere `Accept` alla chiave di cache è solo per Enterprise.
   - Messe in cache così com'è, un iPhone vecchio potrebbe ricevere un AVIF che non sa mostrare.
   - Le immagini hanno `max-age` di 10 anni e `immutable`: dopo la prima visita le serve il browser.

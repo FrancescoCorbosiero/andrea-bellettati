@@ -76,7 +76,7 @@ src/
     emails.ts mail.ts rateLimit.ts seo.ts dates.ts
   assets/                    # foto (next/image) · fonts/ font self-hosted
 docs/                        # spec, decisioni, Cloudflare, web app futura
-deploy/cloudflare/           # regole di cache per Cloudflare e script (regole, svuota, verifica)
+deploy/cloudflare/           # Cloudflare: regole di cache e sync.mjs (gira da solo a ogni deploy)
 ```
 
 ## Contenuti: articoli ed eventi
@@ -138,17 +138,15 @@ docker compose up -d --build
 `NEXT_PUBLIC_SITE_URL` (URL assoluti, sitemap, Open Graph) entra al build come
 argomento: cambiarlo richiede `--build`.
 
-**Con Cloudflare davanti** (guida in [`docs/cloudflare.md`](docs/cloudflare.md)):
-le regole di cache si applicano una volta, e dopo ogni deploy si svuota la cache,
-perché l'HTML resta sulla CDN fino a un anno.
+**Con Cloudflare davanti** (guida in [`docs/cloudflare.md`](docs/cloudflare.md))
+non c'è niente in più da lanciare. Una volta sola si mette il token in
+`deploy/cloudflare/cloudflare.env`. Da lì il servizio `cloudflare`, a ogni
+`docker compose up -d --build`:
 
-```bash
-deploy/cloudflare/cloudflare.sh regole       # una volta (token in deploy/cloudflare/cloudflare.env)
-```
+- allinea regole di cache e impostazioni della zona;
+- svuota la cache quando la build è cambiata.
 
-```bash
-deploy/cloudflare/cloudflare.sh svuota --si  # dopo ogni docker compose up -d --build
-```
+Il log si legge con `docker compose logs cloudflare`.
 
 ## Animazioni
 
