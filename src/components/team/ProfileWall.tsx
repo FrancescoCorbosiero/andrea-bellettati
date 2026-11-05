@@ -33,7 +33,7 @@ export default function ProfileWall() {
 
   return (
     <div className="mt-10">
-      <ul className="flex flex-wrap justify-center gap-3" aria-label="Profili">
+      <ul className="flex flex-wrap justify-center gap-3" aria-label="Profili" data-reveal="stagger">
         {PROFILES.map((p, i) => {
           const on = picked === i;
           return (

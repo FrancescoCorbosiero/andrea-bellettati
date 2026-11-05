@@ -170,7 +170,7 @@ export default function Stories() {
       <div className="wrap mb-8 flex flex-wrap items-end justify-between gap-x-10 gap-y-5">
         <div className="flex max-w-[660px] flex-col items-start gap-4">
           <span className="eyebrow">Le vostre storie</span>
-          <h2 id="stories-title" className="display-lg">
+          <h2 id="stories-title" className="display-lg" data-split>
             Chi ha già <span className="script">iniziato.</span>
           </h2>
           <p className="lead">

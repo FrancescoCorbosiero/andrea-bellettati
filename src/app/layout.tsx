@@ -2,10 +2,10 @@ import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { fontVariables } from './fonts';
 import { AppProvider } from '@/components/app/AppProvider';
-import RevealObserver from '@/components/app/RevealObserver';
 import SiteHeader from '@/components/layout/SiteHeader';
 import SiteFooter from '@/components/layout/SiteFooter';
 import MobileTabbar from '@/components/layout/MobileTabbar';
+import SmoothScroll from '@/components/motion/SmoothScroll';
 import JsonLd from '@/components/seo/JsonLd';
 import { siteGraph } from '@/lib/seo';
 import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from '@/lib/site';
@@ -58,7 +58,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <SiteFooter />
           <MobileTabbar />
         </AppProvider>
-        <RevealObserver />
+        <SmoothScroll />
         <JsonLd data={siteGraph()} />
       </body>
     </html>

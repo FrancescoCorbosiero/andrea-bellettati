@@ -58,13 +58,11 @@ export default function Doors({ articleCount }: { articleCount: number }) {
     >
       <div className="wrap">
         <SectionHead id="doors-title" eyebrow="Da dove vuoi iniziare?" title="Dimmi perché" script="sei qui." />
-        <div className="mt-10 grid gap-5 lg:grid-cols-[1.15fr_1fr] lg:gap-6">
-          {DOORS.map((d, i) => (
+        <div className="mt-10 grid gap-5 lg:grid-cols-[1.15fr_1fr] lg:gap-6" data-reveal="stagger">
+          {DOORS.map((d) => (
             <Link
               key={d.href}
               href={d.href}
-              data-reveal
-              style={{ ['--d' as string]: `${i * 0.08}s` }}
               className={`slab slab-lift group relative isolate flex flex-col items-start gap-5 overflow-hidden p-8 sm:p-11 lg:min-h-[450px] ${
                 d.tone === 'care' ? 'slab-deep on-dark' : 'slab-peach'
               }`}

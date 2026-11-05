@@ -74,7 +74,7 @@ export default function BlogIndex({ articles, categories }: { articles: Article[
       </p>
 
       {shown.length ? (
-        <ul className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <ul className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3" data-reveal="stagger">
           {shown.map((a) => (
             <li key={a.slug}>
               <ArticleCard article={a} headingLevel="h2" />

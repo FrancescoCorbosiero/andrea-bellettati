@@ -26,8 +26,15 @@ export function rateLimit(key: string, limit = 6, windowMs = 10 * 60 * 1000): { 
   return { ok: true, retryAfterSec: 0 };
 }
 
-/** IP del visitatore, dalle intestazioni del proxy (Caddy). */
+/**
+ * IP del visitatore. Dietro Cloudflare è in CF-Connecting-IP: Caddy non si fida
+ * degli X-Forwarded-For che arrivano da fuori e lì metterebbe l'IP del nodo di
+ * Cloudflare, così tutti i visitatori di quel nodo finirebbero nello stesso
+ * conteggio. Senza Cloudflare: il primo X-Forwarded-For, messo da Caddy.
+ */
 export function clientIp(req: Request): string {
+  const cf = req.headers.get('cf-connecting-ip');
+  if (cf) return cf.trim();
   const xff = req.headers.get('x-forwarded-for');
   if (xff) return xff.split(',')[0]!.trim();
   return req.headers.get('x-real-ip') ?? 'unknown';

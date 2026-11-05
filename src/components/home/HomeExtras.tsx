@@ -29,7 +29,7 @@ export function InstagramRow() {
       <div className="wrap mb-7 flex flex-wrap items-end justify-between gap-4">
         <div className="flex flex-col items-start gap-4">
           <span className="eyebrow">Dal profilo</span>
-          <h2 id="ig-title" className="display-md">
+          <h2 id="ig-title" className="display-md" data-split>
             Ogni giorno, <span className="script">su Instagram.</span>
           </h2>
         </div>
@@ -37,15 +37,16 @@ export function InstagramRow() {
           <InstagramIcon size={16} /> {IG_HANDLE}
         </a>
       </div>
-      <div className="flex snap-x snap-mandatory gap-3.5 overflow-x-auto px-[max(22px,calc((100vw-1200px)/2+22px))] pb-5 pt-1.5 [scrollbar-width:none] lg:mx-auto lg:grid lg:max-w-[1200px] lg:grid-cols-6 lg:overflow-visible lg:px-[22px] [&::-webkit-scrollbar]:hidden">
+      <div
+        className="flex snap-x snap-mandatory gap-3.5 overflow-x-auto px-[max(22px,calc((100vw-1200px)/2+22px))] pb-5 pt-1.5 [scrollbar-width:none] lg:mx-auto lg:grid lg:max-w-[1200px] lg:grid-cols-6 lg:overflow-visible lg:px-[22px] [&::-webkit-scrollbar]:hidden"
+        data-reveal="stagger"
+      >
         {IG_TILES.map((t, i) => (
           <a
             key={i}
             href={IG_URL}
             target="_blank"
             rel="noopener"
-            data-reveal
-            style={{ ['--d' as string]: `${i * 0.05}s` }}
             className="group relative aspect-square w-[min(44vw,220px)] flex-none snap-start overflow-hidden rounded-[14px] border border-white/70 shadow-[var(--shadow-glass-s)] transition-[transform,box-shadow] duration-400 hover:-translate-y-[3px] hover:shadow-[var(--shadow-glass-m)] lg:w-auto"
           >
             <Image src={t.src} alt={t.alt} fill sizes="(min-width: 1024px) 190px, 44vw" className="object-cover transition-transform duration-[1.2s] ease-[var(--ease-soft)] group-hover:scale-105" />
@@ -68,7 +69,7 @@ export function NextEvent({ event }: { event: EventEntry }) {
       <div className="wrap">
         <div className="mb-8 flex flex-col items-start gap-4">
           <span className="eyebrow">Dal vivo e online</span>
-          <h2 id="evt-title" className="display-md">
+          <h2 id="evt-title" className="display-md" data-split>
             Prossimo <span className="script">incontro.</span>
           </h2>
         </div>
@@ -144,7 +145,7 @@ export function BlogGrid({ articles, total }: { articles: Article[]; total: numb
       <div className="wrap mb-9 flex flex-wrap items-end justify-between gap-5">
         <div className="flex flex-col items-start gap-4">
           <span className="eyebrow">Dal blog</span>
-          <h2 id="blog-title" className="display-lg">
+          <h2 id="blog-title" className="display-lg" data-split>
             Senza slogan.
             <br />
             Con <span className="script">metodo.</span>
@@ -154,16 +155,17 @@ export function BlogGrid({ articles, total }: { articles: Article[]; total: numb
           Tutti gli articoli <ArrowIcon size={15} />
         </Link>
       </div>
-      <div className="flex snap-x snap-mandatory gap-5 overflow-x-auto px-[max(22px,calc((100vw-1200px)/2+22px))] pb-8 pt-2 [scrollbar-width:none] md:mx-auto md:grid md:max-w-[1200px] md:grid-cols-2 md:overflow-visible md:px-[22px] lg:grid-cols-[repeat(3,minmax(0,1fr))_minmax(0,0.72fr)] [&::-webkit-scrollbar]:hidden">
-        {articles.map((a, i) => (
-          <div key={a.slug} className="w-[min(78vw,360px)] flex-none snap-center md:w-auto" data-reveal style={{ ['--d' as string]: `${i * 0.07}s` }}>
+      <div
+        className="flex snap-x snap-mandatory gap-5 overflow-x-auto px-[max(22px,calc((100vw-1200px)/2+22px))] pb-8 pt-2 [scrollbar-width:none] md:mx-auto md:grid md:max-w-[1200px] md:grid-cols-2 md:overflow-visible md:px-[22px] lg:grid-cols-[repeat(3,minmax(0,1fr))_minmax(0,0.72fr)] [&::-webkit-scrollbar]:hidden"
+        data-reveal="stagger"
+      >
+        {articles.map((a) => (
+          <div key={a.slug} className="w-[min(78vw,360px)] flex-none snap-center md:w-auto">
             <ArticleCard article={a} />
           </div>
         ))}
         <Link
           href="/articoli"
-          data-reveal
-          style={{ ['--d' as string]: '0.21s' }}
           className="slab slab-peach slab-lift flex min-h-[320px] w-[min(78vw,360px)] flex-none snap-center flex-col justify-between gap-4 !rounded-[24px] p-7 md:min-h-0 md:w-auto"
         >
           <span className="font-[family-name:var(--font-poster)] text-[clamp(96px,9vw,140px)] leading-[0.8]">{total}</span>
@@ -209,7 +211,7 @@ export function Faq() {
       <div className="wrap grid items-start gap-9 lg:grid-cols-[0.8fr_1.2fr] lg:gap-20">
         <div className="flex flex-col items-start gap-4 lg:sticky lg:top-28">
           <span className="eyebrow">Domande frequenti</span>
-          <h2 id="faq-title" className="display-lg">
+          <h2 id="faq-title" className="display-lg" data-split>
             Quello che mi chiedete <span className="script">più spesso.</span>
           </h2>
           <p className="max-w-[26em] text-[17px] text-ink-soft">Non trovi la tua domanda? Scrivimi: ti rispondo io, di persona.</p>
@@ -219,7 +221,7 @@ export function Faq() {
         </div>
         <div className="border-t border-ink/12" data-reveal>
           {FAQS.map((f) => (
-            <details key={f.q} className="faq group border-b border-ink/12">
+            <details key={f.q} className="faq group border-b border-ink/12" data-accordion>
               <summary className="flex cursor-pointer list-none items-center justify-between gap-5 px-0.5 py-[22px] text-[clamp(20px,2.1vw,26px)] font-[750] leading-[1.15] tracking-[-0.025em] text-ink transition-colors hover:text-peach-deep [&::-webkit-details-marker]:hidden">
                 <span>{f.q}</span>
                 <i
@@ -227,7 +229,9 @@ export function Faq() {
                   className="relative h-[42px] w-[42px] shrink-0 rounded-full border border-white/90 bg-white/75 shadow-[var(--shadow-glass-s)] transition-[rotate,background-color] duration-500 ease-[var(--ease-spring)] before:absolute before:left-1/2 before:top-1/2 before:h-[2.5px] before:w-[15px] before:-translate-x-1/2 before:-translate-y-1/2 before:rounded before:bg-ink after:absolute after:left-1/2 after:top-1/2 after:h-[15px] after:w-[2.5px] after:-translate-x-1/2 after:-translate-y-1/2 after:rounded after:bg-ink group-open:rotate-45 group-open:bg-peach"
                 />
               </summary>
-              <p className="max-w-[60ch] px-0.5 pb-6 text-[17px] leading-relaxed text-ink-soft">{f.a}</p>
+              <div className="overflow-hidden" data-accordion-body>
+                <p className="max-w-[60ch] px-0.5 pb-6 text-[17px] leading-relaxed text-ink-soft">{f.a}</p>
+              </div>
             </details>
           ))}
         </div>

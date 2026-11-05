@@ -1,8 +1,10 @@
 'use client';
 
-import type { ReactNode } from 'react';
+import { useEffect, useRef, type ReactNode } from 'react';
 import { Chip, Segmented, SegmentedButton } from 'konsta/react';
 import { Check } from 'lucide-react';
+import { PawIcon } from '@/components/icons';
+import { swing } from '@/lib/motion/fx';
 
 /* Pezzi condivisi dai due questionari: campi in stile Konsta (iOS), scelte
    a tocco e la medaglietta col nome dell'animale. */
@@ -188,8 +190,18 @@ export function ChoiceCards<T extends string>({
 export function PetTag({ name, species }: { name: string; species: string }) {
   const shown = name.trim() || (species === 'gatto' ? 'Micio' : 'Birba');
   const empty = !name.trim();
+  const tag = useRef<HTMLDivElement>(null);
+  const typed = useRef(false);
+  // Mentre scrivi il nome la medaglietta oscilla, come appesa al collare.
+  useEffect(() => {
+    if (!typed.current) {
+      typed.current = true;
+      return;
+    }
+    swing(tag.current);
+  }, [name]);
   return (
-    <div className="relative mx-auto flex w-[136px] flex-col items-center pt-5" aria-hidden>
+    <div ref={tag} className="relative mx-auto flex w-[136px] flex-col items-center pt-5" aria-hidden>
       <span className="absolute top-0 h-7 w-7 rounded-full border-[3px] border-ink-mute/45 bg-transparent" />
       <div
         className="relative grid h-[118px] w-[118px] place-items-center rounded-full border border-white/80 text-center"
@@ -210,6 +222,37 @@ export function PetTag({ name, species }: { name: string; species: string }) {
           {shown}
         </span>
       </div>
+    </div>
+  );
+}
+
+/**
+ * La barra dei passi: un segmento per passo e una zampina che salta da un
+ * passo all'altro. Solo CSS: la posizione scorre con una transizione e il
+ * salto riparte a ogni passo (la chiave cambia).
+ */
+export function StepBar({ count, step, done }: { count: number; step: number; done: boolean }) {
+  const at = done ? count - 1 : step;
+  return (
+    <div className="relative mt-6" aria-hidden>
+      <span
+        className="pointer-events-none absolute -top-[21px] h-[14px] w-4 -translate-x-1/2 text-peach-deep transition-[left] duration-700 ease-[cubic-bezier(0.65,0,0.35,1)] motion-reduce:transition-none"
+        style={{ left: `${(((at + 0.5) / count) * 100).toFixed(2)}%` }}
+      >
+        <span key={at} className="paw-hop block">
+          <PawIcon size={16} />
+        </span>
+      </span>
+      <ol className="grid gap-1.5" style={{ gridTemplateColumns: `repeat(${count}, minmax(0, 1fr))` }}>
+        {Array.from({ length: count }, (_, i) => (
+          <li
+            key={i}
+            className={`h-1.5 rounded-full transition-colors duration-500 ${
+              done || i <= step ? 'bg-peach shadow-[0_2px_6px_-2px_rgb(208_103_63/0.7)]' : 'bg-ink/10'
+            }`}
+          />
+        ))}
+      </ol>
     </div>
   );
 }

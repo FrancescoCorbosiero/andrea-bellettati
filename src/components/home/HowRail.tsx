@@ -1,6 +1,3 @@
-'use client';
-
-import { useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { ClipboardList, MessagesSquare, Phone, ScrollText } from 'lucide-react';
 import { ArrowIcon, PawIcon } from '@/components/icons';
@@ -15,39 +12,10 @@ const STEPS = [
 
 /**
  * Come funziona: quattro passi su un binario che si riempie mentre scorri,
- * con la zampina che lo percorre. Senza JavaScript il binario è pieno.
+ * con la zampina che lo percorre (data-rail, motore delle animazioni).
+ * Senza JavaScript il binario è pieno e i passi tutti accesi.
  */
 export default function HowRail() {
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    el.dataset.rail = 'on';
-    let raf = 0;
-    const update = () => {
-      raf = 0;
-      const r = el.getBoundingClientRect();
-      const vh = window.innerHeight;
-      const p = Math.min(1, Math.max(0, (vh * 0.75 - r.top) / (r.height * 0.9 || 1)));
-      el.style.setProperty('--p', p.toFixed(4));
-      el.querySelectorAll<HTMLElement>('[data-step]').forEach((s, i, all) => {
-        s.classList.toggle('is-reached', p >= i / Math.max(1, all.length - 1) - 0.02);
-      });
-    };
-    const onScroll = () => {
-      if (!raf) raf = requestAnimationFrame(update);
-    };
-    update();
-    window.addEventListener('scroll', onScroll, { passive: true });
-    window.addEventListener('resize', onScroll);
-    return () => {
-      window.removeEventListener('scroll', onScroll);
-      window.removeEventListener('resize', onScroll);
-      cancelAnimationFrame(raf);
-    };
-  }, []);
-
   return (
     <section
       className="on-dark section"
@@ -62,7 +30,7 @@ export default function HowRail() {
           </h2>
         </div>
 
-        <div ref={ref} className="rail relative mt-12" style={{ ['--p' as string]: 1 }}>
+        <div className="rail relative mt-12" data-rail>
           {/* Il binario: verticale su telefono, orizzontale da desktop. */}
           <span aria-hidden className="absolute bottom-[29px] left-[27px] top-[29px] w-1 rounded-full bg-white/15 lg:bottom-auto lg:left-[12.5%] lg:right-[12.5%] lg:top-[27px] lg:h-1 lg:w-auto">
             <span className="absolute inset-0 origin-top scale-y-[var(--p)] rounded-full bg-peach lg:origin-left lg:scale-x-[var(--p)] lg:scale-y-100" />
@@ -72,7 +40,7 @@ export default function HowRail() {
           </span>
           <ol className="relative grid gap-8 lg:grid-cols-4 lg:gap-6">
             {STEPS.map((s, i) => (
-              <li key={s.title} data-step className="rail-step grid grid-cols-[58px_1fr] items-start gap-4 lg:grid-cols-1 lg:justify-items-center lg:text-center">
+              <li key={s.title} data-rail-step className="rail-step grid grid-cols-[58px_1fr] items-start gap-4 lg:grid-cols-1 lg:justify-items-center lg:text-center">
                 <span className="rail-dot relative z-10 grid h-[58px] w-[58px] place-items-center rounded-full border border-white/70 bg-peach text-ink shadow-[inset_0_1px_0_rgb(255_255_255/0.8),inset_0_-6px_14px_-8px_rgb(208_103_63/0.6),0_14px_28px_-12px_rgb(0_0_0/0.6)]">
                   <s.icon size={25} strokeWidth={1.9} aria-hidden />
                 </span>

@@ -2,7 +2,6 @@ import Link from 'next/link';
 import bowls from '@/assets/hero.jpg';
 import { ArrowIcon } from '@/components/icons';
 import Polaroid from '@/components/ui/Polaroid';
-import ScrubText from '@/components/ui/ScrubText';
 
 const VALUES = ['Concretezza', 'Vicinanza', 'Scienza semplice', 'Rispetto'];
 
@@ -19,16 +18,19 @@ export default function Statement() {
     >
       <div className="wrap">
         <span className="eyebrow">L&apos;approccio</span>
-        <ScrubText
+        <h2
           id="st-title"
-          text="Non parto dal prodotto. Parto dall'animale. Alimentazione, comportamento e stile di vita fanno parte dello stesso equilibrio."
+          data-scrub
           className="mt-6 max-w-[14.5em] font-[family-name:var(--font-sans)] text-[clamp(34px,4.8vw,72px)] font-[800] normal-case leading-[0.98] tracking-[-0.04em] text-cream-ink"
-        />
+        >
+          Non parto dal prodotto. Parto dall&apos;animale. Alimentazione, comportamento e stile di vita fanno parte dello stesso
+          equilibrio.
+        </h2>
         <div className="mt-[clamp(44px,6vw,80px)] grid items-center gap-10 lg:ml-auto lg:max-w-[920px] lg:grid-cols-[300px_1fr]">
           <div className="mx-auto w-[min(300px,78%)]" data-reveal>
-            <Polaroid src={bowls} alt="Quattro ciotole con carne, verdure e crocchette: una razione preparata con cura" caption="cosa c'è nella ciotola" />
+            <Polaroid src={bowls} alt="Quattro ciotole con carne, verdure e crocchette: una razione preparata con cura" caption="cosa c'è nella ciotola" data-speed="-0.25" />
           </div>
-          <div className="flex max-w-[36em] flex-col gap-4" data-reveal style={{ ['--d' as string]: '0.1s' }}>
+          <div className="flex max-w-[36em] flex-col gap-4" data-reveal>
             <p className="text-[18px] leading-relaxed text-cream-ink/85">
               Il mio lavoro è osservare il soggetto nella sua globalità e costruire un percorso sostenibile per lui e per la
               sua famiglia.

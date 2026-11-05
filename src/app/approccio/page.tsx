@@ -40,9 +40,9 @@ const PRINCIPLES = [
 ];
 
 const SOURCES = [
-  { title: 'La scienza', sub: 'ciò che dice la letteratura', pos: 'left-[3%] top-[5%]', bg: 'rgb(124 148 116 / 0.62)', align: 'items-start text-left pl-[16%] pt-[22%]' },
-  { title: "L'animale", sub: 'ciò che osservo in lui', pos: 'right-[3%] top-[5%]', bg: 'rgb(244 169 138 / 0.72)', align: 'items-end text-right pr-[16%] pt-[22%]' },
-  { title: 'La famiglia', sub: 'la vita di tutti i giorni', pos: 'bottom-[2%] left-1/2 -translate-x-1/2', bg: 'rgb(201 169 106 / 0.66)', align: 'items-center text-center justify-end pb-[16%]' },
+  { title: 'La scienza', sub: 'ciò che dice la letteratura', from: '-62 -34', pos: 'left-[3%] top-[5%]', bg: 'rgb(124 148 116 / 0.62)', align: 'items-start text-left pl-[16%] pt-[22%]' },
+  { title: "L'animale", sub: 'ciò che osservo in lui', from: '62 -34', pos: 'right-[3%] top-[5%]', bg: 'rgb(244 169 138 / 0.72)', align: 'items-end text-right pr-[16%] pt-[22%]' },
+  { title: 'La famiglia', sub: 'la vita di tutti i giorni', from: '0 64', pos: 'bottom-[2%] left-1/2 -translate-x-1/2', bg: 'rgb(201 169 106 / 0.66)', align: 'items-center text-center justify-end pb-[16%]' },
 ];
 
 export default function ApproccioPage() {
@@ -83,7 +83,7 @@ export default function ApproccioPage() {
               Richiedi la tua consulenza gratuita <ArrowIcon size={16} />
             </Link>
           </div>
-          <figure className="relative mx-auto w-full max-w-[470px]">
+          <figure className="relative mx-auto w-full max-w-[470px]" data-speed="0.08">
             <div
               className="intro-photo relative aspect-square rounded-[28px] border border-white/55"
               style={{
@@ -116,63 +116,70 @@ export default function ApproccioPage() {
       >
         <div className="wrap">
           <SectionHead id="rules-title" eyebrow="Il metodo" title="Tre principi che" script="non negozio." />
-          <div className="mt-12 grid gap-6 md:grid-cols-3 md:items-start">
+          <div className="mt-12 grid gap-6 md:grid-cols-3 md:items-start" data-reveal="stagger">
             {PRINCIPLES.map((p, i) => (
-              <article
-                key={p.n}
-                className={`slab ${p.slab} relative flex flex-col gap-3 p-7 pt-9 ${i === 0 ? 'text-ink' : ''} md:mt-[calc(var(--i)*36px)]`}
-                style={{ ['--i' as string]: i === 1 ? 1 : i === 2 ? 0.4 : 0, ['--d' as string]: `${i * 0.1}s` }}
-                data-reveal
-              >
-                <span
-                  className={`absolute -top-3.5 right-5 rounded-full border px-3 py-1 font-[family-name:var(--font-poster)] text-[14px] uppercase tracking-[0.04em] shadow-[var(--shadow-glass-s)] ${
-                    i === 2 ? 'border-white/30 bg-ink text-peach' : 'border-white/90 bg-white text-peach-deep'
-                  }`}
-                >
-                  Non negoziabile
-                </span>
-                <span className={`font-[family-name:var(--font-poster)] text-[64px] leading-[0.85] ${p.num}`}>{p.n}</span>
-                <h3 className="text-[25px]">{p.title}</h3>
-                <p className="text-[15.5px] leading-relaxed opacity-90">{p.body}</p>
-              </article>
+              <div key={p.n} className="md:mt-[calc(var(--i)*36px)]" style={{ ['--i' as string]: i === 1 ? 1 : i === 2 ? 0.4 : 0 }}>
+                <article className={`slab ${p.slab} relative flex flex-col gap-3 p-7 pt-9 ${i < 2 ? 'text-ink' : ''}`}>
+                  <span
+                    data-stamp={String(i * 0.28)}
+                    className={`absolute -top-3.5 right-5 rounded-full border px-3 py-1 font-[family-name:var(--font-poster)] text-[14px] uppercase tracking-[0.04em] shadow-[var(--shadow-glass-s)] ${
+                      i === 2 ? 'border-white/30 bg-ink text-peach' : 'border-white/90 bg-white text-peach-deep'
+                    }`}
+                  >
+                    Non negoziabile
+                  </span>
+                  <span className={`font-[family-name:var(--font-poster)] text-[64px] leading-[0.85] ${p.num}`}>{p.n}</span>
+                  <h3 className="text-[25px]">{p.title}</h3>
+                  <p className="text-[15.5px] leading-relaxed opacity-90">{p.body}</p>
+                </article>
+              </div>
             ))}
           </div>
         </div>
       </section>
 
       {/* TRE FONTI, UNA DIREZIONE */}
-      <section className="section overflow-hidden" aria-labelledby="sources-title">
-        <div className="wrap grid items-center gap-14 lg:grid-cols-2">
-          <div className="flex flex-col items-start gap-5">
-            <SectionHead id="sources-title" eyebrow="Come lavoro" title="Tre fonti," script="una direzione." />
-            <p className="text-[17.5px] leading-relaxed text-ink-soft">
-              Lavoro sull&apos;equilibrio interno dell&apos;animale mettendo insieme tre cose: ciò che la letteratura scientifica
-              dice, ciò che osservo nel singolo soggetto, e il contesto reale della famiglia. Una dieta perfetta sulla carta non
-              serve a nulla se non entra nella vita di tutti i giorni.
-            </p>
-            <p className="text-[17.5px] leading-relaxed text-ink-soft">
-              E il percorso non si chiude con la consulenza: seguo personalmente ogni caso nel tempo, e dietro ogni scelta c&apos;è
-              il confronto con TeamNutrizione, il Team di professionisti con cui condivido un metodo di lavoro comune.
-            </p>
-          </div>
-          <div className="relative mx-auto aspect-square w-full max-w-[520px]" data-reveal aria-label="La scienza, l'animale e la famiglia si incontrano in una direzione" role="img">
-            {SOURCES.map((s) => (
-              <div
-                key={s.title}
-                className={`absolute flex h-[60%] w-[60%] flex-col rounded-full border border-white/70 ${s.pos} ${s.align}`}
-                style={{ background: s.bg, boxShadow: 'inset 0 1px 0 rgb(255 255 255 / 0.7), inset 0 0 40px rgb(255 255 255 / 0.2)' }}
-              >
-                {/* Le etichette stanno sopra tutti i cerchi (i cerchi non creano livelli propri). */}
-                <b className="relative z-10 text-[clamp(22px,2.6vw,30px)] font-[800] leading-none tracking-[-0.03em] text-ink">{s.title}</b>
-                <span className="relative z-10 mt-1 max-w-[9em] text-[13.5px] font-[600] leading-tight text-ink-soft">{s.sub}</span>
+      <section className="section overflow-clip lg:flex lg:min-h-svh lg:items-center" aria-labelledby="sources-title" data-venn>
+        <div data-pin-stage className="w-full">
+          <div className="wrap grid items-center gap-14 lg:grid-cols-2">
+            <div className="flex flex-col items-start gap-5">
+              <SectionHead id="sources-title" eyebrow="Come lavoro" title="Tre fonti," script="una direzione." />
+              <p className="text-[17.5px] leading-relaxed text-ink-soft">
+                Lavoro sull&apos;equilibrio interno dell&apos;animale mettendo insieme tre cose: ciò che la letteratura scientifica
+                dice, ciò che osservo nel singolo soggetto, e il contesto reale della famiglia. Una dieta perfetta sulla carta non
+                serve a nulla se non entra nella vita di tutti i giorni.
+              </p>
+              <p className="text-[17.5px] leading-relaxed text-ink-soft">
+                E il percorso non si chiude con la consulenza: seguo personalmente ogni caso nel tempo, e dietro ogni scelta c&apos;è
+                il confronto con TeamNutrizione, il Team di professionisti con cui condivido un metodo di lavoro comune.
+              </p>
+            </div>
+            <div className="relative mx-auto aspect-square w-full max-w-[min(520px,78svh)]" data-venn-stage aria-label="La scienza, l'animale e la famiglia si incontrano in una direzione" role="img">
+              {/* Due strati con la stessa geometria: prima i cerchi, poi le
+                  etichette. Mentre convergono (data-venn) ogni cerchio è un
+                  livello a sé: così nessun cerchio copre le etichette. */}
+              {SOURCES.map((s) => (
+                <div
+                  key={s.title}
+                  data-venn-circle
+                  data-from={s.from}
+                  className={`absolute h-[60%] w-[60%] rounded-full border border-white/70 ${s.pos}`}
+                  style={{ background: s.bg, boxShadow: 'inset 0 1px 0 rgb(255 255 255 / 0.7), inset 0 0 40px rgb(255 255 255 / 0.2)' }}
+                />
+              ))}
+              {SOURCES.map((s) => (
+                <div key={s.title} data-venn-circle data-from={s.from} className={`pointer-events-none absolute flex h-[60%] w-[60%] flex-col ${s.pos} ${s.align}`}>
+                  <b className="text-[clamp(22px,2.6vw,30px)] font-[800] leading-none tracking-[-0.03em] text-ink">{s.title}</b>
+                  <span className="mt-1 max-w-[9em] text-[13.5px] font-[600] leading-tight text-ink-soft">{s.sub}</span>
+                </div>
+              ))}
+              <div data-venn-core className="absolute left-1/2 top-[52%] z-20 grid h-[27%] w-[27%] -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border border-white/30 bg-ink text-center shadow-[inset_0_1px_0_rgb(255_255_255/0.24),0_14px_30px_-12px_rgb(208_103_63/0.7)]">
+                <span className="font-[family-name:var(--font-script)] text-[clamp(20px,2.4vw,28px)] leading-[0.95] text-peach">
+                  una
+                  <br />
+                  direzione
+                </span>
               </div>
-            ))}
-            <div className="absolute left-1/2 top-[52%] grid h-[27%] w-[27%] -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border border-white/30 bg-ink text-center shadow-[inset_0_1px_0_rgb(255_255_255/0.24),0_14px_30px_-12px_rgb(208_103_63/0.7)]">
-              <span className="font-[family-name:var(--font-script)] text-[clamp(20px,2.4vw,28px)] leading-[0.95] text-peach">
-                una
-                <br />
-                direzione
-              </span>
             </div>
           </div>
         </div>
@@ -189,17 +196,18 @@ export default function ApproccioPage() {
       >
         <div className="wrap flex flex-col items-start gap-7">
           <span className="eyebrow">Il cuore del mio lavoro</span>
-          <blockquote id="proverb-title" className="m-0 max-w-[17em] text-[clamp(32px,4.6vw,64px)] font-[800] leading-[1.02] tracking-[-0.035em] text-ink" data-reveal>
-            Se l&apos;alimentazione è{' '}
-            <span className="relative inline-block">
-              sbagliata
-              <svg aria-hidden viewBox="0 0 200 20" preserveAspectRatio="none" className="draw absolute -bottom-[0.18em] left-0 h-[0.3em] w-full text-ink">
-                <path d="M2 10q10-8 20 0t20 0 20 0 20 0 20 0 20 0 20 0 20 0 20 0 20 0" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" pathLength={1} />
-              </svg>
-            </span>{' '}
-            la medicina è inutile; se l&apos;alimentazione è{' '}
-            <span className="rounded-[6px] bg-white px-1.5 shadow-[var(--shadow-glass-s)]">corretta</span> la medicina non è
-            necessaria.
+          <blockquote id="proverb-title" className="m-0">
+            <p className="m-0 max-w-[17em] text-[clamp(32px,4.6vw,64px)] font-[800] leading-[1.16] tracking-[-0.035em] text-ink" data-scrub>
+              Se l&apos;alimentazione è{' '}
+              <mark className="pv-bad" data-hl="scrub">
+                sbagliata
+              </mark>{' '}
+              la medicina è inutile; se l&apos;alimentazione è{' '}
+              <mark className="pv-good" data-hl="scrub">
+                corretta
+              </mark>{' '}
+              la medicina non è necessaria.
+            </p>
           </blockquote>
           <p className="font-[family-name:var(--font-script)] text-[clamp(24px,2.6vw,32px)] text-ink">— Proverbio ayurvedico</p>
         </div>
@@ -213,7 +221,7 @@ export default function ApproccioPage() {
       >
         <div className="wrap flex flex-col items-start gap-6">
           <span className="eyebrow">Consulenza gratuita · 45 minuti</span>
-          <h2 id="a-cta-title" className="text-[clamp(48px,6.4vw,92px)] leading-[0.9]">
+          <h2 id="a-cta-title" className="text-[clamp(48px,6.4vw,92px)] leading-[0.9]" data-split="lines">
             Raccontami il <span className="script">tuo animale.</span>
           </h2>
           <p className="lead">Il primo passo è gratuito e senza impegno.</p>

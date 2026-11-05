@@ -6,7 +6,7 @@ import { ChevronLeft, Mail, Phone } from 'lucide-react';
 import { ArrowIcon, WhatsAppIcon } from '@/components/icons';
 import { AMBITI, EMPTY_TEAM, TEMPI, isEmail, isPhone, teamLines, teamSubject, teamWhatsAppText, type TeamDraft } from '@/lib/forms';
 import { PHONE, PHONE_DISPLAY, mailtoLink, waLink } from '@/lib/site';
-import { ChipGroup, FieldError, FieldLabel, GroupTitle, SegmentedChoice, inputClass, listClass } from './fields';
+import { ChipGroup, FieldError, FieldLabel, GroupTitle, SegmentedChoice, StepBar, inputClass, listClass } from './fields';
 import { useFlow, type Errors } from './useFlow';
 
 type Field = 'name' | 'email' | 'phone' | 'occupation' | 'inSector' | 'ambito' | 'why' | 'time';
@@ -106,11 +106,7 @@ export default function TeamFlow() {
         </div>
         <span className="w-10" />
       </div>
-      <ol className="mt-3 grid grid-cols-4 gap-1.5" aria-hidden>
-        {STEP_TITLES.map((t, i) => (
-          <li key={t} className={`h-1.5 rounded-full transition-colors duration-500 ${sent || i <= step ? 'bg-peach' : 'bg-ink/10'}`} />
-        ))}
-      </ol>
+      <StepBar count={STEP_TITLES.length} step={step} done={!!sent} />
     </div>
   );
 
@@ -252,7 +248,7 @@ export default function TeamFlow() {
 
   const stepSent = (
     <div className="grid justify-items-center gap-4 py-4 text-center">
-      <span className="grid h-20 w-20 place-items-center rounded-full border border-white/80 bg-sage text-cream-ink shadow-[var(--shadow-sage-l)]">
+      <span data-success-check className="grid h-20 w-20 place-items-center rounded-full border border-white/80 bg-sage text-cream-ink shadow-[var(--shadow-sage-l)]">
         <svg width="34" height="34" viewBox="0 0 24 24" fill="none" aria-hidden>
           <path d="M5 12.5 10 17 19 7" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
         </svg>

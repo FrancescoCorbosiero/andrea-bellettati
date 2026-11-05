@@ -23,4 +23,15 @@ Leggi prima `README.md`, poi `docs/spec.md` (pagine e regole dei testi) e
 - **Konsta** solo nelle parti "app" (questionari, barra in basso, fogli,
   ricerca); i componenti Konsta vanno in file `'use client'`.
 - **Questionari**: campi e regole in `src/lib/forms.ts`, condivisi con il server.
+- **Animazioni**: il motore GSAP + Lenis in `src/lib/motion` (API ad attributi,
+  elenco in testa a `engine.ts`). Si animano le pagine dal markup (`data-reveal`,
+  `data-split`, `data-speed`…), non con nuovi effetti scritti a mano. Gli
+  attributi che cambiano la struttura (`data-split`, `data-scrub`) solo nei
+  Server Component o su elementi che non cambiano tra un render e l'altro;
+  nei componenti client si anima solo posizione e opacità (`fx.ts`, Web
+  Animations). `engine.ts` non si importa mai in modo statico: arriva dopo la
+  pagina. Senza JS o con "riduci movimento" la pagina deve restare completa.
+- **Leggerezza**: prima di aggiungere JavaScript a tutte le pagine, misura
+  (`docs/decisioni.md`, "Leggerezza"): il sito deve restare reattivo su un
+  telefono medio.
 - **Prima di consegnare**: `npm run check` e `npm run build` puliti.

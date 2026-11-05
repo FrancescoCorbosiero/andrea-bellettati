@@ -3,20 +3,19 @@ import Link from 'next/link';
 import aboutPhoto from '@/assets/home-chi-sono.jpg';
 import vanPhoto from '@/assets/home-approccio.jpg';
 import { ArrowIcon } from '@/components/icons';
-import CountUp from '@/components/ui/CountUp';
 import Polaroid from '@/components/ui/Polaroid';
-import { IG_URL, STATS } from '@/lib/site';
+import { IG_URL, STATS, formatNumber } from '@/lib/site';
 
 /** Chi sono: la persona dietro la consulenza, con i numeri. */
 export default function About() {
   return (
     <section className="section overflow-hidden border-y border-ink/10 bg-sage-mist" aria-labelledby="about-title">
       <div className="wrap grid items-center gap-16 lg:grid-cols-[0.85fr_1.15fr] lg:gap-24">
-        <div className="relative mx-auto w-[min(82%,430px)]" data-reveal>
-          <div className="aspect-[4/5] overflow-hidden rounded-[26px] border border-white/70 shadow-[0_0_0_7px_rgb(255_255_255/0.28),0_0_0_8px_rgb(255_255_255/0.5),var(--shadow-glass-xl)]">
+        <div className="relative mx-auto w-[min(82%,430px)]">
+          <div data-clip className="aspect-[4/5] overflow-hidden rounded-[26px] border border-white/70 shadow-[0_0_0_7px_rgb(255_255_255/0.28),0_0_0_8px_rgb(255_255_255/0.5),var(--shadow-glass-xl)]">
             <Image src={aboutPhoto} alt="Andrea Bellettati al mare con i suoi due cani in braccio" sizes="(min-width: 1024px) 430px, 80vw" className="h-full w-full object-cover" />
           </div>
-          <Polaroid src={vanPhoto} alt="Andrea con il furgone aperto e i cani, pronti a partire in montagna" caption="si parte!" sizes="220px" className="!absolute -bottom-[9%] -right-[16%] w-1/2 !pb-10 !p-2.5" />
+          <Polaroid src={vanPhoto} alt="Andrea con il furgone aperto e i cani, pronti a partire in montagna" caption="si parte!" sizes="220px" data-speed="0.16" className="!absolute -bottom-[9%] -right-[16%] w-1/2 !pb-10 !p-2.5" />
         </div>
         <div className="flex flex-col items-start gap-5">
           <span className="eyebrow">Chi sono</span>
@@ -33,12 +32,19 @@ export default function About() {
           </p>
           <ul className="mt-1 grid w-full grid-cols-3 gap-3.5 border-t border-ink/15 pt-6" data-reveal>
             {[
-              { n: <CountUp to={STATS.teamSince} from={2000} plain />, l: 'inizio nel team' },
-              { n: <CountUp to={STATS.posts} />, l: 'contenuti pubblicati' },
-              { n: <CountUp to={STATS.followers} />, l: 'persone mi seguono' },
+              { n: STATS.teamSince, from: 2000, plain: true, l: 'inizio nel team' },
+              { n: STATS.posts, l: 'contenuti pubblicati' },
+              { n: STATS.followers, l: 'persone mi seguono' },
             ].map((s) => (
               <li key={s.l} className="flex flex-col gap-1.5">
-                <b className="font-[family-name:var(--font-poster)] text-[clamp(38px,4.4vw,60px)] font-normal leading-[0.9] text-peach-deep">{s.n}</b>
+                <b
+                  className="font-[family-name:var(--font-poster)] text-[clamp(38px,4.4vw,60px)] font-normal leading-[0.9] tabular-nums text-peach-deep"
+                  data-count={s.n}
+                  data-count-from={s.from}
+                  data-count-plain={s.plain ? '' : undefined}
+                >
+                  {s.plain ? s.n : formatNumber(s.n)}
+                </b>
                 <span className="text-[14.5px] font-[650] leading-tight text-ink-mute">{s.l}</span>
               </li>
             ))}

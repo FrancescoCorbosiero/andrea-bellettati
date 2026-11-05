@@ -86,7 +86,7 @@ export default async function EventoPage(props: PageProps<'/eventi/[slug]'>) {
       <section className="on-dark section-tight" style={{ background: 'radial-gradient(60% 70% at 85% 0%, rgb(255 255 255 / 0.14), rgb(255 255 255 / 0) 70%), var(--color-sage)' }}>
         <div className="wrap flex flex-col items-start gap-5 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex flex-col gap-3">
-            <h2 className="display-md">
+            <h2 className="display-md" data-split>
               Preferisci un confronto
               <br />
               tutto tuo?
