@@ -8,14 +8,18 @@
 type Window = { count: number; resetAt: number };
 
 const store = new Map<string, Window>();
-let lastSweep = 0;
+const WINDOW_MS = 10 * 60 * 1000;
 
-export function rateLimit(key: string, limit = 6, windowMs = 10 * 60 * 1000): { ok: boolean; retryAfterSec: number } {
+// Gli indirizzi non restano in memoria oltre la loro finestra, anche se non
+// arriva più nessuno (l'informativa privacy lo promette): pulizia ogni minuto.
+const sweep = () => {
   const now = Date.now();
-  if (now - lastSweep > windowMs) {
-    for (const [k, w] of store) if (w.resetAt <= now) store.delete(k);
-    lastSweep = now;
-  }
+  for (const [k, w] of store) if (w.resetAt <= now) store.delete(k);
+};
+setInterval(sweep, 60_000).unref?.();
+
+export function rateLimit(key: string, limit = 6, windowMs = WINDOW_MS): { ok: boolean; retryAfterSec: number } {
+  const now = Date.now();
   const win = store.get(key);
   if (!win || win.resetAt <= now) {
     store.set(key, { count: 1, resetAt: now + windowMs });

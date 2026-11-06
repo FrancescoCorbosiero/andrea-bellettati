@@ -6,7 +6,7 @@ import { ChevronLeft, Mail, Phone } from 'lucide-react';
 import { ArrowIcon, WhatsAppIcon } from '@/components/icons';
 import { AMBITI, EMPTY_TEAM, TEMPI, isEmail, isPhone, teamLines, teamSubject, teamWhatsAppText, type TeamDraft } from '@/lib/forms';
 import { EMAIL_PARTNER, PHONE, PHONE_DISPLAY, mailtoLink, waLink } from '@/lib/site';
-import { ChipGroup, FieldError, FieldLabel, GroupTitle, SegmentedChoice, StepBar, inputClass, listClass } from './fields';
+import { ChipGroup, FieldError, FieldLabel, GroupTitle, PrivacyNote, SegmentedChoice, StepBar, inputClass, listClass } from './fields';
 import { useFlow, type Errors } from './useFlow';
 
 type Field = 'name' | 'email' | 'phone' | 'occupation' | 'inSector' | 'ambito' | 'why' | 'time';
@@ -281,17 +281,20 @@ export default function TeamFlow() {
             Continua <ArrowIcon size={16} />
           </button>
         ) : (
-          <button type="button" className="btn btn-lg btn-block" onClick={f.submit} disabled={f.sending} aria-busy={f.sending}>
-            {f.sending ? (
-              <>
-                <Preloader className="!h-5 !w-5 !text-ink" /> Invio in corso…
-              </>
-            ) : (
-              <>
-                Invia il messaggio <ArrowIcon size={16} />
-              </>
-            )}
-          </button>
+          <div className="grid gap-2.5">
+            <button type="button" className="btn btn-lg btn-block" onClick={f.submit} disabled={f.sending} aria-busy={f.sending}>
+              {f.sending ? (
+                <>
+                  <Preloader className="!h-5 !w-5 !text-ink" /> Invio in corso…
+                </>
+              ) : (
+                <>
+                  Invia il messaggio <ArrowIcon size={16} />
+                </>
+              )}
+            </button>
+            <PrivacyNote />
+          </div>
         )}
       </div>
     </div>

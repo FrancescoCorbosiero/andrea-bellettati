@@ -19,7 +19,7 @@ import {
   type ConsultDraft,
 } from '@/lib/forms';
 import { EMAIL_CONSULENZE, PHONE, PHONE_DISPLAY, mailtoLink, waLink } from '@/lib/site';
-import { ChipGroup, ChoiceCards, FieldError, FieldLabel, GroupTitle, PetTag, SegmentedChoice, StepBar, inputClass, listClass } from './fields';
+import { ChipGroup, ChoiceCards, FieldError, FieldLabel, GroupTitle, PetTag, PrivacyNote, SegmentedChoice, StepBar, inputClass, listClass } from './fields';
 import { useFlow, type Errors, type Variant } from './useFlow';
 
 type Field = 'species' | 'petName' | 'concerns' | 'name' | 'phone' | 'email';
@@ -493,6 +493,7 @@ export default function ConsultFlow({
           >
             <WhatsAppIcon size={15} /> Preferisci WhatsApp? Mandala da lì
           </a>
+          <PrivacyNote />
         </div>
       )}
     </div>

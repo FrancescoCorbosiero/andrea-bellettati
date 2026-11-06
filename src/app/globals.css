@@ -726,5 +726,120 @@ h2 .script::after {
   .btn-ghost, .icon-btn, .slab-frost { background-color: var(--color-paper); -webkit-backdrop-filter: none; backdrop-filter: none; }
 }
 
-/* Pagine delle campagne: nessun header fisso, le ancore non lasciano spazio sopra. */
+/* =====================================================================
+   Pagine delle campagne (CampaignHero): l'hero con un po' di festa.
+   Tutto CSS, così parte subito, prima del motore; solo opacità e
+   trasformazioni. Con "riduci movimento" è tutto fermo e visibile.
+   ===================================================================== */
+/* Nessun header fisso: le ancore non lasciano spazio sopra. */
 html:has([data-campaign]) { scroll-padding-top: 16px; }
+
+/* Il bagliore che respira dietro l'hero. */
+.lp-hero { position: relative; isolation: isolate; overflow-x: clip; }
+.lp-hero::before, .lp-hero::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  border-radius: 999px;
+  pointer-events: none;
+}
+.lp-hero::before {
+  top: -12%;
+  left: -18%;
+  width: min(760px, 120vw);
+  aspect-ratio: 1;
+  background: radial-gradient(closest-side, rgb(244 169 138 / 0.42), rgb(244 169 138 / 0));
+}
+.lp-hero::after {
+  right: -14%;
+  bottom: -6%;
+  width: min(620px, 100vw);
+  aspect-ratio: 1;
+  background: radial-gradient(closest-side, rgb(111 139 96 / 0.22), rgb(111 139 96 / 0));
+}
+
+/* Le righe del titolo: il testo sale dalla sua maschera. */
+.lp-line { display: flex; flex-wrap: wrap; align-items: center; gap: 0 0.16em; width: fit-content; max-width: 100%; position: relative; }
+.lp-mask { display: block; overflow: hidden; padding: 0.16em 0.05em 0.07em; margin: -0.16em -0.05em -0.07em; }
+.lp-rise { display: block; }
+
+/* La foto nel titolo: si coccola (data-pet: scodinzola, cuori al tocco). */
+.lp-face {
+  position: relative;
+  display: inline-block;
+  flex-shrink: 0;
+  height: 0.8em;
+  width: 1.45em;
+  border-radius: 999px;
+  border: 0.05em solid #fff;
+  background: var(--color-sand);
+  box-shadow: var(--shadow-glass-s), 0 0.12em 0.3em -0.12em rgb(31 40 24 / 0.45);
+}
+.lp-face img { width: 100%; height: 100%; border-radius: inherit; object-fit: cover; }
+/* Il cuoricino che dice "toccami". */
+.lp-heart {
+  position: absolute;
+  top: -0.14em;
+  right: -0.14em;
+  display: grid;
+  place-items: center;
+  width: 0.36em;
+  height: 0.36em;
+  border-radius: 999px;
+  border: 0.03em solid #fff;
+  background: var(--color-peach);
+  color: var(--color-ink);
+  box-shadow: 0 0.06em 0.16em -0.04em rgb(31 40 24 / 0.5);
+}
+.lp-heart svg { width: 58%; height: 58%; }
+
+/* La sottolineatura a mano sotto l'ultima riga. */
+.lp-accent::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0.3em;
+  bottom: -0.1em;
+  height: 0.15em;
+  background: var(--color-peach);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 12' preserveAspectRatio='none'%3E%3Cpath d='M2 8c18-6 30 2 46-1s28-6 44-2 20 3 26 0' fill='none' stroke='black' stroke-width='3.4' stroke-linecap='round'/%3E%3C/svg%3E") center / 100% 100% no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 12' preserveAspectRatio='none'%3E%3Cpath d='M2 8c18-6 30 2 46-1s28-6 44-2 20 3 26 0' fill='none' stroke='black' stroke-width='3.4' stroke-linecap='round'/%3E%3C/svg%3E") center / 100% 100% no-repeat;
+  transform-origin: left center;
+  pointer-events: none;
+}
+
+/* Le pillole sui bordi del questionario. */
+.lp-chip {
+  position: absolute;
+  z-index: 10;
+  gap: 7px;
+  padding: 7px 14px 7px 10px;
+  font-size: 13.5px;
+  font-weight: 700;
+  white-space: nowrap;
+  box-shadow: var(--shadow-glass-s), 0 12px 24px -14px rgb(31 40 24 / 0.55);
+}
+.lp-chip svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+@keyframes lp-rise { from { translate: 0 108%; } to { translate: 0 0; } }
+@keyframes lp-pop { from { opacity: 0; scale: 0.3; } to { opacity: 1; scale: 1; } }
+@keyframes lp-draw { from { scale: 0 1; } to { scale: 1 1; } }
+@keyframes lp-beat { 0%, 100% { scale: 1; } 40% { scale: 1.3; } 70% { scale: 0.95; } }
+@keyframes lp-bob { from { translate: 0 0; } to { translate: 0 -7px; } }
+@keyframes lp-drift { from { translate: 0 0; } to { translate: 6% 8%; } }
+@keyframes lp-shine { 0%, 55% { background-position: 106% 0, 0 0; } 100% { background-position: -6% 0, 0 0; } }
+
+@media (prefers-reduced-motion: no-preference) {
+  .lp-hero::before { animation: lp-drift 11s ease-in-out infinite alternate; }
+  .lp-hero::after { animation: lp-drift 14s ease-in-out -5s infinite alternate-reverse; }
+  .lp-rise { animation: lp-rise 0.95s cubic-bezier(0.2, 0.9, 0.2, 1) both; animation-delay: var(--d, 0s); }
+  .lp-face { animation: lp-pop 0.85s var(--ease-spring) both; animation-delay: var(--d, 0.5s); }
+  .lp-heart { animation: lp-pop 0.6s var(--ease-spring) both, lp-beat 0.9s ease-in-out 3; animation-delay: calc(var(--d, 0.5s) + 0.5s), calc(var(--d, 0.5s) + 1.3s); }
+  .lp-accent::after { animation: lp-draw 0.8s cubic-bezier(0.6, 0, 0.3, 1) both; animation-delay: var(--draw-d, 0.9s); }
+  .lp-chip {
+    animation: lp-pop 0.7s var(--ease-spring) both, lp-bob 2.6s ease-in-out infinite alternate;
+    animation-delay: var(--d, 1s), calc(var(--d, 1s) + 0.7s);
+  }
+  /* Il bottone principale del questionario manda qualche riflesso, poi si calma. */
+  [data-campaign] [data-flow-root] .btn-lg:not(:disabled) { animation: lp-shine 2.8s ease-in-out 2.2s 3; }
+}

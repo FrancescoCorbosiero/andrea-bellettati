@@ -1,7 +1,9 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
-import { GraduationCap, Laptop } from 'lucide-react';
+import { GraduationCap, Handshake, Laptop } from 'lucide-react';
+import faceTeam from '@/assets/home-approccio.jpg';
 import ritratto from '@/assets/ritratto.jpg';
+import CampaignHero from '@/components/campaign/CampaignHero';
 import StickyCta from '@/components/campaign/StickyCta';
 import TeamFlow from '@/components/flows/TeamFlow';
 import { ArrowIcon, WhatsAppIcon } from '@/components/icons';
@@ -53,32 +55,27 @@ const FAQS = [
 export default function PartnerCampagna() {
   return (
     <>
-      <section className="relative pb-16 pt-2 lg:pb-24 lg:pt-8" aria-labelledby="lp-title">
-        <div className="wrap grid items-start gap-8 lg:grid-cols-[0.92fr_1.08fr] lg:gap-x-16">
-          <div className="flex flex-col items-start gap-5 lg:col-start-1 lg:row-start-1">
-            <span className="eyebrow intro">Lavora con noi · {TEAM_NAME}</span>
-            <h1 id="lp-title" className="text-[clamp(40px,10vw,88px)] leading-[0.92] lg:text-[clamp(56px,5.4vw,84px)]">
-              <span className="intro block" style={{ ['--d' as string]: '0.1s' }}>
-                Il benessere animale
-              </span>
-              <span className="intro block" style={{ ['--d' as string]: '0.2s' }}>
-                può diventare
-              </span>
-              <span className="intro block text-peach-deep" style={{ ['--d' as string]: '0.3s' }}>
-                il tuo lavoro.
-              </span>
-            </h1>
-            <p className="lead intro max-w-[30em]" style={{ ['--d' as string]: '0.45s' }}>
-              Non cerco venditori: cerco persone e professionisti che vogliono imparare l&apos;alimentazione e il benessere di
-              cani e gatti. Raccontami chi sei, ti ricontatto io.
-            </p>
-          </div>
-
-          <div id="questionario" className="intro lg:col-start-2 lg:row-span-2 lg:row-start-1" style={{ ['--d' as string]: '0.3s' }}>
-            <TeamFlow />
-          </div>
-
-          <div className="flex flex-col gap-8 lg:col-start-1 lg:row-start-2">
+      {/* Il pitch e il messaggio nello stesso schermo (CampaignHero). */}
+      <CampaignHero
+        id="lp-title"
+        eyebrow={`Lavora con noi · ${TEAM_NAME}`}
+        titleClass="text-[clamp(40px,10vw,88px)] leading-[0.92] lg:text-[clamp(54px,5.3vw,82px)]"
+        lines={[
+          { text: 'Il benessere' },
+          { text: 'animale', face: true },
+          { text: 'può diventare' },
+          { text: 'il tuo lavoro.', accent: true },
+        ]}
+        face={{ src: faceTeam, position: '50% 62%' }}
+        lead="Non cerco venditori: cerco persone e professionisti che vogliono imparare l'alimentazione e il benessere di cani e gatti. Raccontami chi sei, ti ricontatto io."
+        chips={[
+          { icon: <Handshake aria-hidden />, label: 'Senza impegno', tone: 'peach', className: '-top-5 left-5' },
+          { icon: <Laptop aria-hidden />, label: 'Online e offline', className: '-top-5 right-5' },
+          { icon: <GraduationCap aria-hidden />, label: 'Formazione dal primo giorno', className: '-bottom-5 inset-x-0 mx-auto' },
+        ]}
+        form={<TeamFlow />}
+        aside={
+          <>
             <ul className="ticks intro text-[17px]" style={{ ['--d' as string]: '0.6s' }}>
               {PROMISES.map((p) => (
                 <li key={p}>{p}</li>
@@ -97,9 +94,9 @@ export default function PartnerCampagna() {
                 personalmente: nessun automatismo, nessuna lista d&apos;attesa.
               </figcaption>
             </figure>
-          </div>
-        </div>
-      </section>
+          </>
+        }
+      />
 
       {/* Il modello, detto subito */}
       <section className="section-tight border-y border-ink/10 bg-sage-soft" aria-labelledby="model-title">

@@ -5,6 +5,7 @@ import { Chip, Segmented, SegmentedButton } from 'konsta/react';
 import { Check } from 'lucide-react';
 import { PawIcon } from '@/components/icons';
 import { swing } from '@/lib/motion/fx';
+import { PRIVACY_HREF } from '@/lib/site';
 
 /* Pezzi condivisi dai due questionari: campi in stile Konsta (iOS), scelte
    a tocco e la medaglietta col nome dell'animale. */
@@ -254,5 +255,17 @@ export function StepBar({ count, step, done }: { count: number; step: number; do
         ))}
       </ol>
     </div>
+  );
+}
+
+/** Accanto all'invio: a chi arrivano i dati e il link all'informativa (si apre a parte, la bozza resta). */
+export function PrivacyNote() {
+  return (
+    <p className="px-2 text-center text-[12.5px] leading-snug text-ink-mute">
+      Inviando, i tuoi dati arrivano solo a me, per risponderti.{' '}
+      <a href={PRIVACY_HREF} target="_blank" rel="noopener" className="underline underline-offset-2 hover:text-ink">
+        Informativa privacy
+      </a>
+    </p>
   );
 }
