@@ -2,9 +2,6 @@ import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { fontVariables } from './fonts';
 import { AppProvider } from '@/components/app/AppProvider';
-import SiteHeader from '@/components/layout/SiteHeader';
-import SiteFooter from '@/components/layout/SiteFooter';
-import MobileTabbar from '@/components/layout/MobileTabbar';
 import SmoothScroll from '@/components/motion/SmoothScroll';
 import JsonLd from '@/components/seo/JsonLd';
 import { siteGraph } from '@/lib/seo';
@@ -52,12 +49,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         >
           Salta al contenuto
         </a>
-        <AppProvider>
-          <SiteHeader />
-          <main id="contenuto">{children}</main>
-          <SiteFooter />
-          <MobileTabbar />
-        </AppProvider>
+        {/* Header, piè di pagina e barra in basso stanno nei layout dei gruppi:
+            (sito) per le pagine del sito, (campagne) per le pagine degli annunci. */}
+        <AppProvider>{children}</AppProvider>
         <SmoothScroll />
         <JsonLd data={siteGraph()} />
       </body>

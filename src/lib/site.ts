@@ -15,6 +15,12 @@ export const SITE_DESCRIPTION =
 export const WA_NUMBER = '393476780938';
 export const WA_LINK = `https://wa.me/${WA_NUMBER}`;
 export const EMAIL = 'andrebellettati@gmail.com';
+/** Le due caselle dei questionari, sul dominio del sito: le richieste di
+ *  consulenza e chi vuole entrare nel Team. Il server può cambiarle con
+ *  SES_TO_CONSULENZE e SES_TO_PARTNER (vedi .env.example). */
+const SITE_HOST = new URL(SITE_URL).hostname.replace(/^www\./, '');
+export const EMAIL_CONSULENZE = `consulenze@${SITE_HOST}`;
+export const EMAIL_PARTNER = `partners@${SITE_HOST}`;
 export const PHONE = '+393476780938';
 export const PHONE_DISPLAY = '+39 347 678 0938';
 export const IG_HANDLE = '@comunicazionecinofila';
@@ -44,9 +50,9 @@ export function waLink(text: string): string {
   return `${WA_LINK}?text=${encodeURIComponent(text)}`;
 }
 
-/** Link mailto con oggetto e testo già scritti. */
-export function mailtoLink(subject: string, body: string): string {
-  return `mailto:${EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+/** Link mailto con oggetto e testo già scritti (di base all'indirizzo generale). */
+export function mailtoLink(subject: string, body: string, to: string = EMAIL): string {
+  return `mailto:${to}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 }
 
 /** Indirizzo assoluto di un percorso del sito. */

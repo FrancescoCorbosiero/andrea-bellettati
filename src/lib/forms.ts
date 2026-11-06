@@ -152,6 +152,7 @@ export const consultSchema = z.object({
     .refine((v) => v === '' || isEmail(v)),
   callTime: z.enum(['mattina', 'pomeriggio', 'sera', '']).default(''),
   whatsappOk: z.boolean().default(true),
+  source: text(300).default(''),
 });
 
 /** Payload della richiesta per entrare nel Team (lato server). */
@@ -166,12 +167,15 @@ export const teamSchema = z.object({
   why: text(3000).min(5),
   time: text(60).min(1),
   social: text(200).default(''),
+  source: text(300).default(''),
 });
 
 export const requestSchema = z.discriminatedUnion('kind', [consultSchema, teamSchema]);
 export type ConsultPayload = z.infer<typeof consultSchema>;
 export type TeamPayload = z.infer<typeof teamSchema>;
 export type RequestPayload = z.infer<typeof requestSchema>;
+/** Ciò che manda il browser: i campi con un default possono mancare. */
+export type RequestInput = z.input<typeof requestSchema>;
 
 /* ── Testi: WhatsApp ed email ─────────────────────────────────────── */
 

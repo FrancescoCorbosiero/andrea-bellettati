@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { KonstaProvider } from 'konsta/react';
 import type { ConsultDraft } from '@/lib/forms';
 import { lockScroll } from '@/lib/motion/scroll';
+import { rememberArrival } from '@/lib/source';
 
 /* Il questionario e il menu si caricano solo quando servono (al primo segno
    di intenzione, vedi sotto): chi legge e basta non scarica il codice dei form. */
@@ -101,6 +102,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setSheet(null);
     if (sheetOf(window.history.state)) window.history.replaceState(null, '');
   }, []);
+
+  // La prima pagina della visita e la sua campagna (vanno nell'email ad Andrea).
+  useEffect(rememberArrival, []);
 
   // Indietro/avanti: il foglio è aperto esattamente sul suo passo di cronologia.
   useEffect(() => {

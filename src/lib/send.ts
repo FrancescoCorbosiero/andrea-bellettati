@@ -1,20 +1,22 @@
 'use client';
 
-import type { RequestPayload } from './forms';
+import type { RequestInput } from './forms';
+import { describeSource } from './source';
 
 export type SendResult = { ok: true } | { ok: false; reason: string };
 
 /**
  * Manda la richiesta al server (/api/richiesta → email ad Andrea via SES).
  * `elapsedMs` e `company` sono le due trappole per i bot (tempo minimo di
- * compilazione e campo nascosto): il server le controlla.
+ * compilazione e campo nascosto): il server le controlla. `source` dice ad
+ * Andrea da quale pagina e campagna arriva la richiesta.
  */
-export async function sendRequest(payload: RequestPayload, extra: { elapsedMs: number; company: string }): Promise<SendResult> {
+export async function sendRequest(payload: RequestInput, extra: { elapsedMs: number; company: string }): Promise<SendResult> {
   try {
     const res = await fetch('/api/richiesta', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...payload, ...extra }),
+      body: JSON.stringify({ ...payload, source: describeSource(), ...extra }),
       keepalive: true,
     });
     if (res.ok) {

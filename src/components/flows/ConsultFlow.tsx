@@ -18,7 +18,7 @@ import {
   isPhone,
   type ConsultDraft,
 } from '@/lib/forms';
-import { PHONE, PHONE_DISPLAY, mailtoLink, waLink } from '@/lib/site';
+import { EMAIL_CONSULENZE, PHONE, PHONE_DISPLAY, mailtoLink, waLink } from '@/lib/site';
 import { ChipGroup, ChoiceCards, FieldError, FieldLabel, GroupTitle, PetTag, SegmentedChoice, StepBar, inputClass, listClass } from './fields';
 import { useFlow, type Errors, type Variant } from './useFlow';
 
@@ -89,7 +89,7 @@ export default function ConsultFlow({
   const { draft: d, step, sent } = f;
   const pet = d.petName.trim() || (d.species === 'gatto' ? 'il tuo gatto' : d.species === 'cane' ? 'il tuo cane' : 'il tuo animale');
   const waText = consultWhatsAppText(d);
-  const mailto = mailtoLink(consultSubject(d), waText);
+  const mailto = mailtoLink(consultSubject(d), waText, EMAIL_CONSULENZE);
 
   /* ── testata: indietro, titolo, chiudi, avanzamento ─────────────── */
   const header = (
