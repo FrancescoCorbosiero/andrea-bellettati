@@ -153,6 +153,25 @@ basso, per annunci, link in bio e QR: il questionario subito, poco intorno.
 - Negli annunci si usano i parametri `utm_*` (es.
   `/consulenza?utm_source=meta&utm_campaign=autunno`): finiscono nell'email.
 
+## Privacy e dati legali
+
+- `/privacy`: informativa (artt. 13 GDPR) e cookie, scritta su come funziona
+  davvero il sito: questionari, caselle, provenienza, fornitori (server,
+  Cloudflare, Amazon SES, caselle email, WhatsApp se lo si sceglie), tempi di
+  conservazione, diritti. Se cambia uno di questi, si aggiorna la pagina e la
+  data in `LEGAL.aggiornata`.
+- Titolare, email per la privacy, partita IVA e indirizzo stanno in `LEGAL`
+  (`src/lib/site.ts`). La partita IVA, se c'è, compare da sola nei piè di
+  pagina (obbligatoria per chi ne ha una) e nell'informativa.
+- Accanto a ogni invio dei questionari c'è l'avviso con il link all'informativa;
+  il link è anche nei piè di pagina del sito e delle campagne.
+- Niente banner: il sito non usa cookie di profilazione o di statistica, solo
+  `sessionStorage` (bozze e provenienza) e i cookie tecnici di Cloudflare. Un
+  pixel di Meta o un tag di Google vorrebbero il consenso prima: banner e
+  informativa da aggiornare insieme.
+- L'informativa dice che SES invia da un centro dati UE: `AWS_REGION` resta
+  europea (es. `eu-west-1`, `eu-south-1`).
+
 ## Deploy
 
 Come il sito Astro: un container dietro Caddy, che prende i certificati da solo.

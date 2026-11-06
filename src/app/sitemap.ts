@@ -3,14 +3,14 @@ import { getArticles, getEvents } from '@/lib/content';
 import { absoluteUrl } from '@/lib/site';
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const pages = ['/', '/consulenza-gratuita', '/approccio', '/chi-sono', '/servizi', '/lavora-con-noi', '/articoli', '/eventi'];
+  const pages = ['/', '/consulenza-gratuita', '/approccio', '/chi-sono', '/servizi', '/lavora-con-noi', '/articoli', '/eventi', '/privacy'];
   const now = new Date();
   return [
     ...pages.map((p) => ({
       url: absoluteUrl(p),
       lastModified: now,
       changeFrequency: 'monthly' as const,
-      priority: p === '/' ? 1 : p === '/consulenza-gratuita' ? 0.9 : 0.7,
+      priority: p === '/' ? 1 : p === '/consulenza-gratuita' ? 0.9 : p === '/privacy' ? 0.2 : 0.7,
     })),
     ...getArticles()
       .filter((a) => a.onSite)

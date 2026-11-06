@@ -43,6 +43,7 @@ I due flussi sono sempre a un tocco: header (desktop), barra in basso
 | `/lavora-con-noi` | Copertina TeamNutrizione · hero · "Stiamo creando ~~una rete di venditori~~ un Team" · il metodo (01–03) · a chi è rivolto (parete dei profili che sceglie l'ambito) · flessibilità e formazione · trasparenza sul modello · il flusso "Entra nel Team" (`#unisciti`) |
 | `/consulenza` (campagne, `noindex`) | Senza menu né piè di pagina: hero con il questionario subito · le tre promesse e chi sono · cosa succede dopo · Zoe, prima e dopo · domande · chiusura con il questionario o WhatsApp · bottone fisso sul telefono |
 | `/partner` (campagne, `noindex`) | Senza menu né piè di pagina: hero con "Entra nel Team" subito · trasparenza sul modello · a chi è rivolto · flessibilità e formazione · domande · chiusura |
+| `/privacy` | Informativa privacy e cookie, in prima persona e parole semplici: chi tratta i dati, quali e perché, chi altro li vede, fuori UE, per quanto tempo, diritti, cookie e memoria del browser |
 | `/approccio` | Hero ("Non parto dal prodotto. Parto dall'animale.") · tre principi non negoziabili · tre fonti, una direzione (scienza, animale, famiglia) · proverbio ayurvedico · CTA |
 | `/chi-sono` | Hero da biglietto da visita (ritratto, numeri, "Nel Team dal 2021", firma) · vivo con una bassotta (tre polaroid, citazione) · il percorso (4 tappe) · CTA con la scheda Instagram |
 | `/servizi` | Tre strade (alimentazione naturale, consulenza 1:1, opportunità lavorative) · come funziona · CTA |

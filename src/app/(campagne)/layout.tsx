@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { WhatsAppIcon } from '@/components/icons';
 import Logo from '@/components/layout/Logo';
-import { SITE_NAME, waLink } from '@/lib/site';
+import { LEGAL, PRIVACY_HREF, SITE_NAME, waLink } from '@/lib/site';
 
 /**
  * Le pagine delle campagne (annunci, link in bio, QR): niente menu, niente
@@ -26,8 +26,12 @@ export default function CampaignLayout({ children }: { children: ReactNode }) {
       </header>
       <main id="contenuto">{children}</main>
       <footer className="wrap border-t border-ink/10 pb-32 pt-8 text-[13.5px] leading-relaxed text-ink-mute lg:pb-10">
-        © {new Date().getFullYear()} {SITE_NAME} · Comunicazione Cinofila. Il veterinario resta il riferimento per diagnosi e
-        terapie.
+        © {new Date().getFullYear()} {SITE_NAME} · Comunicazione Cinofila
+        {LEGAL.partitaIva ? ` · P.IVA ${LEGAL.partitaIva}` : ''}. Il veterinario resta il riferimento per diagnosi e terapie.{' '}
+        {/* In un'altra scheda: il questionario resta dov'è. */}
+        <a href={PRIVACY_HREF} target="_blank" rel="noopener" className="underline underline-offset-2 hover:text-ink">
+          Privacy e cookie
+        </a>
       </footer>
     </div>
   );

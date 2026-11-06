@@ -60,6 +60,21 @@ export function absoluteUrl(path: string): string {
   return new URL(path, `${SITE_URL}/`).href;
 }
 
+/**
+ * Chi tratta i dati (informativa privacy) e i dati legali del piè di pagina.
+ * La partita IVA, se c'è, va mostrata in ogni pagina: compilandola qui
+ * compare da sola nei piè di pagina e nell'informativa.
+ */
+export const LEGAL: { titolare: string; email: string; partitaIva: string; indirizzo: string; aggiornata: string } = {
+  titolare: SITE_NAME,
+  email: EMAIL,
+  partitaIva: '',
+  indirizzo: '',
+  aggiornata: '6 novembre 2026',
+};
+
+export const PRIVACY_HREF = '/privacy';
+
 /** Voci principali di navigazione (header desktop, menu, footer). */
 export const NAV = [
   { href: '/approccio', label: 'Approccio' },
