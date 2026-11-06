@@ -62,13 +62,15 @@ export function absoluteUrl(path: string): string {
 
 /**
  * Chi tratta i dati (informativa privacy) e i dati legali del piè di pagina.
- * La partita IVA, se c'è, va mostrata in ogni pagina: compilandola qui
- * compare da sola nei piè di pagina e nell'informativa.
+ * La partita IVA, se c'è, va mostrata in ogni pagina: con
+ * NEXT_PUBLIC_PARTITA_IVA nel .env compare da sola nei piè di pagina,
+ * nell'informativa e nelle email.
  */
 export const LEGAL: { titolare: string; email: string; partitaIva: string; indirizzo: string; aggiornata: string } = {
   titolare: SITE_NAME,
   email: EMAIL,
-  partitaIva: '',
+  // Dal .env (NEXT_PUBLIC_PARTITA_IVA), entra al build: vedi .env.example.
+  partitaIva: (process.env.NEXT_PUBLIC_PARTITA_IVA ?? '').trim(),
   indirizzo: '',
   aggiornata: '6 novembre 2026',
 };

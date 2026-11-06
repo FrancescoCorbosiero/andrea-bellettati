@@ -149,6 +149,13 @@ basso, per annunci, link in bio e QR: il questionario subito, poco intorno.
   (non porta alla home) e WhatsApp. Le pagine del sito sono in `src/app/(sito)`.
 - Fuori dai motori di ricerca (`noindex`) e dalla sitemap: le pagine del sito
   restano `/consulenza-gratuita` e `/lavora-con-noi`.
+- L'hero (`components/campaign/CampaignHero.tsx`): il titolo che sale riga per
+  riga, la foto nel titolo da coccolare (scodinzola, cuori al tocco), la
+  sottolineatura a mano dell'ultima riga, le pillole che saltano fuori dai
+  bordi del questionario, un bagliore che respira, qualche riflesso sul bottone
+  principale. Tutto CSS (`globals.css`, "Pagine delle campagne"): parte prima
+  del motore, non sposta il questionario sul telefono, con "riduci movimento"
+  è fermo.
 - Sul telefono il bottone fisso in basso riporta al questionario.
 - Negli annunci si usano i parametri `utm_*` (es.
   `/consulenza?utm_source=meta&utm_campaign=autunno`): finiscono nell'email.
@@ -161,8 +168,16 @@ basso, per annunci, link in bio e QR: il questionario subito, poco intorno.
   conservazione, diritti. Se cambia uno di questi, si aggiorna la pagina e la
   data in `LEGAL.aggiornata`.
 - Titolare, email per la privacy, partita IVA e indirizzo stanno in `LEGAL`
-  (`src/lib/site.ts`). La partita IVA, se c'è, compare da sola nei piè di
-  pagina (obbligatoria per chi ne ha una) e nell'informativa.
+  (`src/lib/site.ts`). La partita IVA arriva dal `.env`
+  (`NEXT_PUBLIC_PARTITA_IVA`, entra al build: poi `docker compose up -d --build`)
+  e compare da sola nei piè di pagina (obbligatoria per chi ne ha una),
+  nell'informativa e nelle email.
+- **Email** (`src/lib/emails.ts`): stessa veste del sito (marchio, lastra
+  bianca, pesca). Ad Andrea: bottoni Chiama / WhatsApp (primo messaggio già
+  scritto) / Email, la provenienza, l'ora di arrivo e il promemoria dei 24 mesi.
+  A chi ha scritto: breve, i tre passi, il riepilogo; in fondo perché arriva
+  l'email (servizio, non newsletter), titolare, partita IVA e informativa.
+  Per vederle con dati di prova basta chiamare le funzioni con un payload.
 - Accanto a ogni invio dei questionari c'è l'avviso con il link all'informativa;
   il link è anche nei piè di pagina del sito e delle campagne.
 - Niente banner: il sito non usa cookie di profilazione o di statistica, solo

@@ -1,9 +1,12 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
+import { Clock3, Gift, PenLine } from 'lucide-react';
 import consulenzaPhoto from '@/assets/consulenza.jpg';
+import faceConsulenza from '@/assets/chi-sono.jpg';
 import ritratto from '@/assets/ritratto.jpg';
 import zoeAfter from '@/assets/storia-zoe-dopo.jpg';
 import zoeBefore from '@/assets/storia-zoe-prima.jpg';
+import CampaignHero from '@/components/campaign/CampaignHero';
 import StickyCta from '@/components/campaign/StickyCta';
 import ConsultInline from '@/components/flows/ConsultInline';
 import { ArrowIcon, WhatsAppIcon } from '@/components/icons';
@@ -63,34 +66,22 @@ const FAQS = [
 export default function ConsulenzaCampagna() {
   return (
     <>
-      {/* Il pitch e il questionario nello stesso schermo. Sul telefono: il
-          pitch, il questionario, poi chi sono. */}
-      <section className="relative pb-16 pt-2 lg:pb-24 lg:pt-8" aria-labelledby="lp-title">
-        <div className="wrap grid items-start gap-8 lg:grid-cols-[0.92fr_1.08fr] lg:gap-x-16">
-          <div className="flex flex-col items-start gap-5 lg:col-start-1 lg:row-start-1">
-            <span className="eyebrow intro">Consulenza gratuita · 45 minuti</span>
-            <h1 id="lp-title" className="text-[clamp(48px,12.5vw,104px)] leading-[0.88] lg:text-[clamp(66px,6.6vw,100px)]">
-              <span className="intro block" style={{ ['--d' as string]: '0.1s' }}>
-                45 minuti
-              </span>
-              <span className="intro block" style={{ ['--d' as string]: '0.2s' }}>
-                per il tuo
-              </span>
-              <span className="intro block text-peach-deep" style={{ ['--d' as string]: '0.3s' }}>
-                cane o gatto.
-              </span>
-            </h1>
-            <p className="lead intro max-w-[30em]" style={{ ['--d' as string]: '0.45s' }}>
-              Mi racconti cosa mangia e come si comporta. Ascolto, faccio qualche domanda e alla fine ti lascio un piano di
-              lavoro scritto e firmato.
-            </p>
-          </div>
-
-          <div id="questionario" className="intro lg:col-start-2 lg:row-span-2 lg:row-start-1" style={{ ['--d' as string]: '0.3s' }}>
-            <ConsultInline />
-          </div>
-
-          <div className="flex flex-col gap-8 lg:col-start-1 lg:row-start-2">
+      {/* Il pitch e il questionario nello stesso schermo (CampaignHero). */}
+      <CampaignHero
+        id="lp-title"
+        eyebrow="Consulenza gratuita · 45 minuti"
+        titleClass="text-[clamp(48px,12.5vw,104px)] leading-[0.9] lg:text-[clamp(60px,6vw,92px)]"
+        lines={[{ text: '45 minuti' }, { text: 'per il tuo', face: true }, { text: 'cane o gatto.', accent: true }]}
+        face={{ src: faceConsulenza, position: '62% 38%' }}
+        lead="Mi racconti cosa mangia e come si comporta. Ascolto, faccio qualche domanda e alla fine ti lascio un piano di lavoro scritto e firmato."
+        chips={[
+          { icon: <Gift aria-hidden />, label: 'Gratis', tone: 'peach', className: '-top-5 left-5' },
+          { icon: <Clock3 aria-hidden />, label: '45 minuti al telefono', className: '-top-5 right-5' },
+          { icon: <PenLine aria-hidden />, label: 'Piano scritto e firmato', className: '-bottom-5 inset-x-0 mx-auto' },
+        ]}
+        form={<ConsultInline />}
+        aside={
+          <>
             <ul className="ticks intro text-[17px]" style={{ ['--d' as string]: '0.6s' }}>
               {PROMISES.map((p) => (
                 <li key={p}>{p}</li>
@@ -109,9 +100,9 @@ export default function ConsulenzaCampagna() {
                 {TEAM_NAME} dal {STATS.teamSince}, {formatNumber(STATS.followers)} persone mi seguono su Instagram.
               </figcaption>
             </figure>
-          </div>
-        </div>
-      </section>
+          </>
+        }
+      />
 
       {/* Cosa succede dopo */}
       <section className="section-tight border-y border-ink/10 bg-peach-soft" aria-labelledby="steps-title">
