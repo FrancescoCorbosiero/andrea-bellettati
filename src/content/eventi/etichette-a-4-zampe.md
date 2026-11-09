@@ -5,7 +5,7 @@ excerpt: "Un webinar live per imparare a leggere le etichette del cibo e fare sc
 date: 2026-02-11T21:00:00+01:00
 category: "Webinar Live"
 coverAlt: "Locandina del webinar Etichette a 4 Zampe con Virginia Dallara, Team Branco"
-featured: true
+featured: false
 status: "upcoming"
 statusLabel: "Prossimo · posti limitati"
 free: true
