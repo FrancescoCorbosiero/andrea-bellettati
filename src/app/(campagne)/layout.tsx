@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { WhatsAppIcon } from '@/components/icons';
+import AlpacodeBadge from '@/components/layout/AlpacodeBadge';
 import Logo from '@/components/layout/Logo';
 import { LEGAL, PRIVACY_HREF, SITE_NAME, waLink } from '@/lib/site';
 
@@ -32,6 +33,9 @@ export default function CampaignLayout({ children }: { children: ReactNode }) {
         <a href={PRIVACY_HREF} target="_blank" rel="noopener" className="underline underline-offset-2 hover:text-ink">
           Privacy e cookie
         </a>
+        <div className="mt-5">
+          <AlpacodeBadge theme="light" />
+        </div>
       </footer>
     </div>
   );

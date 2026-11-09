@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import logo from '@/assets/logo.jpg';
+import AlpacodeBadge from '@/components/layout/AlpacodeBadge';
 import { WhatsAppIcon } from '@/components/icons';
 import { CONSULENZA_HREF, EMAIL, IG_HANDLE, IG_URL, LEGAL, PHONE, PHONE_DISPLAY, PRIVACY_HREF, TEAM_HREF, WA_LINK } from '@/lib/site';
 
@@ -103,13 +104,16 @@ export default function SiteFooter() {
         ))}
       </p>
 
-      <div className="wrap mt-8 flex flex-wrap justify-between gap-3 border-t border-white/15 pt-5 text-[13px] text-cream-ink/60">
+      <div className="wrap mt-8 flex flex-wrap items-center justify-between gap-x-6 gap-y-3 border-t border-white/15 pt-5 text-[13px] text-cream-ink/60">
         <span>
           © {year} Andrea Bellettati · Comunicazione Cinofila{LEGAL.partitaIva ? ` · P.IVA ${LEGAL.partitaIva}` : ''}
         </span>
-        <Link href={PRIVACY_HREF} className="underline-offset-2 transition-colors hover:text-peach hover:underline">
-          Privacy e cookie
-        </Link>
+        <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
+          <Link href={PRIVACY_HREF} className="underline-offset-2 transition-colors hover:text-peach hover:underline">
+            Privacy e cookie
+          </Link>
+          <AlpacodeBadge theme="dark" />
+        </div>
       </div>
     </footer>
   );
