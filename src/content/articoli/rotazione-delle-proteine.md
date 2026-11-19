@@ -5,6 +5,7 @@ excerpt: "Cambiare fonte proteica a rotazione: quando serve davvero, quando è s
 category: "Alimentazione"
 status: "published"
 placeholderLabel: "ALIMENTAZIONE"
+hidden: true
 ---
 
 "Ruota le proteine" è diventato un consiglio quasi automatico. Come tutti gli

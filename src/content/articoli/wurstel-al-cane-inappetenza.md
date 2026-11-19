@@ -5,6 +5,7 @@ excerpt: "Il trucco del wurstel funziona oggi e complica domani: cosa innesca e 
 category: "Alimentazione"
 status: "published"
 placeholderLabel: "ALIMENTAZIONE"
+hidden: true
 ---
 
 Il cane non mangia, la preoccupazione sale, e a portata di mano c'è il wurstel:

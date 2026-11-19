@@ -8,7 +8,7 @@ import Statement from '@/components/home/Statement';
 import Stories from '@/components/home/Stories';
 import JsonLd from '@/components/seo/JsonLd';
 import CtaBand from '@/components/ui/CtaBand';
-import { getArticles, nextEvent } from '@/lib/content';
+import { getArticles, isOpenEvent, nextEvent } from '@/lib/content';
 import { pageMetadata } from '@/lib/seo';
 import { SITE_DESCRIPTION } from '@/lib/site';
 
@@ -24,25 +24,30 @@ export const metadata = pageMetadata({
 });
 
 /**
- * Home: un compito solo, portare alla consulenza gratuita (e chi vuole
- * lavorare nel Team al colloquio). Promessa → le due porte → chi sono →
- * come ragiono → come funziona → storie → Instagram → prossimo incontro →
- * blog → dubbi → di nuovo i due flussi.
+ * Home: portare alla consulenza gratuita (e chi vuole lavorare nel Team al
+ * colloquio), con gli eventi in primo piano. Promessa (con il biglietto del
+ * prossimo evento) → prossimo incontro → le due porte → chi sono → come
+ * ragiono → come funziona → storie → Instagram → blog → dubbi → di nuovo i
+ * due flussi.
  */
 export default function HomePage() {
   const articles = getArticles();
   const onSite = articles.filter((a) => a.onSite);
   const event = nextEvent();
+  // In programma: subito sotto il primo schermo. Senza data (in arrivo, su
+  // richiesta) resta più in basso, dove c'era.
+  const open = isOpenEvent(event) && event.onSite;
   return (
     <>
-      <HomeHero />
+      <HomeHero event={open ? event : undefined} />
+      {open && <NextEvent event={event} />}
       <Doors articleCount={articles.filter((a) => a.status === 'published').length} />
       <About />
       <Statement />
       <HowRail />
       <Stories />
       <InstagramRow />
-      {event && <NextEvent event={event} />}
+      {event && !open && <NextEvent event={event} />}
       {onSite.length > 0 && <BlogGrid articles={onSite.slice(0, 3)} total={articles.filter((a) => a.status === 'published').length} />}
       <Faq />
       <CtaBand />

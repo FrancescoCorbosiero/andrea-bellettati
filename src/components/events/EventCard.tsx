@@ -47,18 +47,33 @@ export function EventMeta({ event }: { event: EventEntry }) {
   );
 }
 
+/**
+ * Il pulsante per iscriversi: il modulo d'iscrizione se l'evento ne ha uno,
+ * altrimenti WhatsApp con il messaggio già scritto.
+ */
+export function ReserveButton({ event, className = 'btn' }: { event: EventEntry; className?: string }) {
+  if (event.reserveUrl) {
+    return (
+      <a className={className} href={event.reserveUrl} target="_blank" rel="noopener">
+        {event.free ? 'Iscriviti gratis' : 'Iscriviti'} <ArrowIcon size={15} />
+      </a>
+    );
+  }
+  const text = event.reserveWaText ?? `Ciao Andrea! Vorrei informazioni sull'incontro "${event.title}".`;
+  return (
+    <a className={className} href={waLink(text)} target="_blank" rel="noopener">
+      <WhatsAppIcon size={15} /> Riserva il tuo posto
+    </a>
+  );
+}
+
 /** Le azioni di un evento: riservare il posto, aggiungerlo al calendario, i dettagli. */
 export function EventActions({ event, withDetails = true }: { event: EventEntry; withDetails?: boolean }) {
   const { href, external } = eventHref(event);
-  const reserve = event.reserveWaText ?? `Ciao Andrea! Vorrei informazioni sull'incontro "${event.title}".`;
   const scheduled = event.status === 'upcoming' && event.date && event.onSite;
   return (
     <div className="flex flex-wrap items-center gap-3">
-      {event.status === 'upcoming' && (
-        <a className="btn" href={waLink(reserve)} target="_blank" rel="noopener">
-          <WhatsAppIcon size={15} /> Riserva il tuo posto
-        </a>
-      )}
+      {event.status === 'upcoming' && <ReserveButton event={event} />}
       {scheduled && (
         <a className="btn btn-ghost" href={`/eventi/${event.slug}/calendario.ics`} download>
           <CalendarPlus size={16} aria-hidden /> Aggiungi al calendario

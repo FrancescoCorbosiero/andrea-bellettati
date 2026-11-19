@@ -5,6 +5,7 @@ excerpt: "Un cane irrequieto, un gatto che si gratta: qual è la relazione tra c
 category: "Comportamento"
 status: "published"
 placeholderLabel: "COMPORTAMENTO"
+hidden: true
 ---
 
 C'è una domanda che è il cuore del mio lavoro: quanto di ciò che chiamiamo

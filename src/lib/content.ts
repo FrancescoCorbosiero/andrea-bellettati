@@ -32,6 +32,10 @@ const articleSchema = z.object({
   status: z.enum(['published', 'coming-soon']).default('published'),
   /** Se presente, i link puntano qui (es. Instagram) invece che alla pagina. */
   externalUrl: z.url().optional(),
+  /** true = fuori dal sito (niente pagina, elenchi, sitemap, RSS). Il file resta. */
+  hidden: z.boolean().default(false),
+  /** Slug dell'evento collegato: se è in programma, l'articolo lo mette in evidenza in alto. */
+  event: z.string().optional(),
 });
 
 const eventSchema = z.object({
@@ -55,6 +59,8 @@ const eventSchema = z.object({
   tags: z.array(z.string()).default([]),
   /** Testo WhatsApp precompilato per "Riserva il tuo posto". */
   reserveWaText: z.string().optional(),
+  /** Modulo d'iscrizione (es. Google Moduli): se c'è, sostituisce WhatsApp. */
+  reserveUrl: z.url().optional(),
   externalUrl: z.url().optional(),
   internalUrl: z.string().optional(),
 });
@@ -84,6 +90,7 @@ function readDir<T>(dir: string, schema: z.ZodType<T>): (T & { slug: string; bod
 
 export const getArticles = cache((): Article[] =>
   readDir('articoli', articleSchema)
+    .filter((a) => !a.hidden)
     .map((a) => {
       const words = a.body.trim().split(/\s+/).length;
       return {
@@ -122,6 +129,17 @@ export function nextEvent(now = Date.now()): EventEntry | undefined {
     all.find((e) => e.status === 'coming-soon') ??
     all.find((e) => e.status === 'on-request')
   );
+}
+
+/** Un evento in programma con la data ancora da venire (quello da spingere). */
+export function isOpenEvent(e: EventEntry | undefined, now = Date.now()): e is EventEntry & { date: Date } {
+  return !!e && e.status === 'upcoming' && !!e.date && e.date.getTime() >= now;
+}
+
+/** Il prossimo incontro solo se è davvero in programma: per il banner e le pagine del blog. */
+export function openEvent(now = Date.now()): (EventEntry & { date: Date }) | undefined {
+  const e = nextEvent(now);
+  return isOpenEvent(e, now) ? e : undefined;
 }
 
 /** Dove porta un evento: la sua pagina, un link esterno o interno. */

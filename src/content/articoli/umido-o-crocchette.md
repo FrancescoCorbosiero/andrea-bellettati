@@ -5,6 +5,7 @@ excerpt: "Oltre il derby umido-secco: come leggere davvero una dieta, tra ingred
 category: "Alimentazione"
 status: "published"
 placeholderLabel: "ALIMENTAZIONE"
+hidden: true
 ---
 
 «Meglio l'umido o le crocchette?» è forse la domanda che mi fanno più spesso.

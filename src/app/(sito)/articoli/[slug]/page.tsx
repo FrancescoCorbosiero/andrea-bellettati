@@ -2,15 +2,18 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import ArticleCard from '@/components/blog/ArticleCard';
+import EventPromo from '@/components/events/EventPromo';
 import { ReadingProgress, ShareRow } from '@/components/blog/ArticleTools';
 import { ArrowIcon, WhatsAppIcon } from '@/components/icons';
 import JsonLd from '@/components/seo/JsonLd';
-import { getArticle, getArticles, renderMarkdown } from '@/lib/content';
+import { getArticle, getArticles, openEvent, renderMarkdown } from '@/lib/content';
 import { longDate } from '@/lib/dates';
 import { breadcrumbLd, pageMetadata } from '@/lib/seo';
 import { CONSULENZA_HREF, SITE_URL, absoluteUrl, waLink } from '@/lib/site';
 
 export const dynamicParams = false;
+/** Il riquadro del prossimo evento cambia con le date: rigenerata ogni 12 ore. */
+export const revalidate = 43200;
 
 export function generateStaticParams() {
   return getArticles()
@@ -31,6 +34,9 @@ export default async function ArticoloPage(props: PageProps<'/articoli/[slug]'>)
   if (!a) notFound();
   const { html, headings } = await renderMarkdown(a.body);
   const url = absoluteUrl(`/articoli/${a.slug}`);
+  // Il prossimo evento: in fondo a ogni articolo; anche in testa se l'articolo è collegato proprio a lui.
+  const event = openEvent();
+  const promo = event?.onSite ? event : undefined;
 
   const others = getArticles().filter((x) => x.slug !== a.slug && x.onSite);
   const related = [...others.filter((x) => x.category === a.category), ...others.filter((x) => x.category !== a.category)].slice(0, 3);
@@ -63,6 +69,11 @@ export default async function ArticoloPage(props: PageProps<'/articoli/[slug]'>)
           </p>
           <h1 className="font-[family-name:var(--font-sans)] text-[clamp(36px,5vw,60px)] font-[800] normal-case leading-[1.02] tracking-[-0.035em]">{a.title}</h1>
           <p className="lead">{a.excerpt}</p>
+          {promo && a.event === promo.slug && (
+            <div className="mt-2 w-full">
+              <EventPromo event={promo} compact />
+            </div>
+          )}
         </header>
 
         {headings.length >= 3 && (
@@ -89,6 +100,11 @@ export default async function ArticoloPage(props: PageProps<'/articoli/[slug]'>)
             <ShareRow title={a.title} url={url} />
           </div>
         </div>
+        {promo && (
+          <div className="wrap mt-[clamp(48px,6vw,72px)]" data-reveal>
+            <EventPromo event={promo} />
+          </div>
+        )}
       </article>
 
       {related.length > 0 && (

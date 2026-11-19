@@ -6,11 +6,10 @@ import van from '@/assets/home-approccio.jpg';
 import winter from '@/assets/chi-sono.jpg';
 import river from '@/assets/consulenza.jpg';
 import sea from '@/assets/home-chi-sono.jpg';
-import { CalendarCheck, Clock3, MapPin, UsersRound } from 'lucide-react';
 import ArticleCard from '@/components/blog/ArticleCard';
+import { DateTile, EventMeta, ReserveButton } from '@/components/events/EventCard';
 import FaqList from '@/components/ui/FaqList';
 import { ArrowIcon, InstagramIcon, WhatsAppIcon } from '@/components/icons';
-import { eventDay, eventMonth, eventTime } from '@/lib/dates';
 import { eventHref, type Article, type EventEntry } from '@/lib/content';
 import { IG_HANDLE, IG_URL, waLink } from '@/lib/site';
 
@@ -61,10 +60,14 @@ export function InstagramRow() {
   );
 }
 
-/** Prossimo incontro: il primo evento in programma, dalla collection eventi. */
+/**
+ * Prossimo incontro: il primo evento in programma, dalla collection eventi.
+ * Subito dopo il primo schermo: gli eventi sono la porta d'ingresso più
+ * leggera per conoscermi.
+ */
 export function NextEvent({ event }: { event: EventEntry }) {
   const { href, external } = eventHref(event);
-  const scheduled = event.status === 'upcoming' && event.date;
+  const open = event.status === 'upcoming';
   return (
     <section className="section-tight" aria-labelledby="evt-title">
       <div className="wrap">
@@ -75,57 +78,22 @@ export function NextEvent({ event }: { event: EventEntry }) {
           </h2>
         </div>
         <article className="slab grid items-center gap-7 p-[clamp(22px,3.4vw,40px)] md:grid-cols-[auto_1fr] md:gap-12" data-reveal>
-          <div
-            aria-hidden
-            className="flex aspect-[0.9] w-[150px] flex-col items-center justify-center gap-0.5 rounded-[20px] border border-white/15 bg-bark p-3.5 text-center text-cream-ink shadow-[inset_0_1px_0_rgb(255_255_255/0.24),0_18px_36px_-16px_rgb(208_103_63/0.7)]"
-          >
-            {scheduled && event.date ? (
-              <>
-                <span className="text-[12.5px] font-[700] uppercase tracking-[0.08em] text-peach">{eventMonth(event.date)}</span>
-                <span className="font-[family-name:var(--font-poster)] text-[64px] leading-none">{eventDay(event.date)}</span>
-                <span className="min-w-[70%] border-t border-dashed border-white/30 pt-1.5 text-[13.5px] text-cream-ink/80">ore {eventTime(event.date)}</span>
-              </>
-            ) : (
-              <>
-                <span className="text-[12.5px] font-[700] uppercase tracking-[0.08em] text-peach">Data</span>
-                <span className="font-[family-name:var(--font-script)] text-[34px] leading-[1.1]">{event.whenLabel ?? 'In arrivo'}</span>
-              </>
-            )}
-          </div>
+          <DateTile event={event} />
           <div className="flex min-w-0 flex-col items-start gap-3">
             {event.statusLabel && <span className="pill pill-peach">{event.statusLabel}</span>}
             <h3 className="text-[clamp(26px,2.8vw,36px)]">{event.title}</h3>
+            {event.subtitle && <p className="text-[18px] font-[700] text-ink">{event.subtitle}</p>}
             <p className="max-w-[48em] text-[16.5px] leading-relaxed text-ink-soft">{event.excerpt}</p>
-            <ul className="mt-0.5 flex flex-wrap gap-x-5 gap-y-2 text-[14.5px] font-[600] text-ink-mute">
-              {event.locationLabel && (
-                <li className="inline-flex items-center gap-1.5">
-                  <MapPin size={16} aria-hidden className="text-olive" /> {event.locationLabel}
-                </li>
-              )}
-              {event.collab && (
-                <li className="inline-flex items-center gap-1.5">
-                  <UsersRound size={16} aria-hidden className="text-olive" /> {event.collab}
-                </li>
-              )}
-              {event.duration && (
-                <li className="inline-flex items-center gap-1.5">
-                  <Clock3 size={16} aria-hidden className="text-olive" /> {event.duration}
-                </li>
-              )}
-              {event.free && (
-                <li className="inline-flex items-center gap-1.5">
-                  <CalendarCheck size={16} aria-hidden className="text-olive" /> Gratuito
-                </li>
-              )}
-            </ul>
+            <EventMeta event={event} />
             <div className="mt-2 flex flex-wrap items-center gap-x-6 gap-y-3">
+              {open && <ReserveButton event={event} className="btn btn-lg" />}
               {external ? (
-                <a className="btn" href={href} target="_blank" rel="noopener">
+                <a className={open ? 'text-link' : 'btn'} href={href} target="_blank" rel="noopener">
                   Resta aggiornato <ArrowIcon size={15} />
                 </a>
               ) : (
-                <Link className="btn" href={href}>
-                  Dettagli e prenotazione <ArrowIcon size={15} />
+                <Link className={open ? 'text-link' : 'btn'} href={href}>
+                  {open ? 'Tutti i dettagli' : 'Dettagli e prenotazione'} <ArrowIcon size={15} />
                 </Link>
               )}
               <Link className="text-link" href="/eventi">

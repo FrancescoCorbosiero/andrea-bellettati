@@ -3,6 +3,8 @@ import Link from 'next/link';
 import heroPortrait from '@/assets/home-hero.jpg';
 import bowl from '@/assets/home-ciotola.jpg';
 import { ArrowIcon, HandUnderline } from '@/components/icons';
+import type { EventEntry } from '@/lib/content';
+import { eventDay, eventMonth, eventTime } from '@/lib/dates';
 import { CONSULENZA_HREF, TEAM_HREF } from '@/lib/site';
 
 const FACTS = ['45 minuti al telefono', 'Piano scritto e firmato', 'Senza impegno'];
@@ -10,9 +12,10 @@ const FACTS = ['45 minuti al telefono', 'Piano scritto e firmato', 'Senza impegn
 /**
  * Hero: marrone pieno con una luce calda dietro le foto. A destra la foto
  * di Andrea in una cornice di vetro chiaro e, davanti, la ciotola. Le due
- * strade del sito (consulenza, Team) subito in vista.
+ * strade del sito (consulenza, Team) subito in vista. Se c'è un evento in
+ * programma, il suo biglietto apre il primo schermo.
  */
-export default function HomeHero() {
+export default function HomeHero({ event }: { event?: EventEntry & { date: Date } }) {
   return (
     <section
       className="on-dark relative overflow-hidden"
@@ -24,6 +27,7 @@ export default function HomeHero() {
     >
       <div className="wrap grid items-center gap-12 pb-20 pt-8 lg:min-h-[calc(100svh-72px)] lg:grid-cols-[1.05fr_0.95fr] lg:gap-12 lg:py-16">
         <div className="relative z-10 flex flex-col items-start gap-6">
+          {event && <HeroEvent event={event} />}
           <span className="eyebrow intro" style={{ ['--d' as string]: '0.05s' }}>
             Nutrizione e comportamento · cane e gatto
           </span>
@@ -100,5 +104,38 @@ export default function HomeHero() {
         </div>
       </div>
     </section>
+  );
+}
+
+/**
+ * Il biglietto del prossimo evento nel primo schermo: data in una piastrella
+ * pesca, titolo e "Iscriviti". Porta alla pagina dell'evento.
+ */
+function HeroEvent({ event }: { event: EventEntry & { date: Date } }) {
+  return (
+    <Link
+      href={`/eventi/${event.slug}`}
+      className="intro group flex w-full max-w-[34em] items-center gap-3.5 rounded-[20px] border border-white/30 bg-white/10 p-2.5 pr-4 shadow-[inset_0_1px_0_rgb(255_255_255/0.3),0_18px_40px_-22px_rgb(0_0_0/0.7)] transition-colors hover:bg-white/15"
+      style={{ ['--d' as string]: '0s', WebkitBackdropFilter: 'blur(14px)', backdropFilter: 'blur(14px)' }}
+    >
+      <span
+        aria-hidden
+        className="flex h-[62px] w-[58px] shrink-0 flex-col items-center justify-center rounded-[14px] border border-white/60 bg-peach text-ink shadow-[inset_0_1px_0_rgb(255_255_255/0.7)]"
+      >
+        <span className="text-[10.5px] font-[750] uppercase tracking-[0.08em]">{eventMonth(event.date).slice(0, 3)}</span>
+        <span className="font-[family-name:var(--font-poster)] text-[30px] leading-none">{eventDay(event.date)}</span>
+      </span>
+      <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+        <span className="text-[12.5px] font-[750] uppercase tracking-[0.06em] text-peach">
+          {event.free ? 'Serata gratuita' : 'Prossimo evento'} · ore {eventTime(event.date)}
+          {/online/i.test(event.locationLabel ?? '') && <span className="hidden sm:inline"> · online</span>}
+        </span>
+        <span className="text-[15px] font-[750] leading-snug text-cream-ink sm:text-[16px]">{event.title}</span>
+      </span>
+      <span className="hidden shrink-0 items-center gap-1.5 rounded-full bg-peach px-3.5 py-2 text-[14px] font-[750] text-ink sm:inline-flex">
+        Iscriviti <ArrowIcon size={14} />
+      </span>
+      <ArrowIcon size={18} className="shrink-0 text-peach sm:hidden" />
+    </Link>
   );
 }
