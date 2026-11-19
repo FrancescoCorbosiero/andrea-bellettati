@@ -5,6 +5,7 @@ excerpt: "Il microbiota ha i suoi tempi: perché la transizione alimentare deve 
 category: "Alimentazione"
 status: "published"
 placeholderLabel: "ALIMENTAZIONE"
+hidden: true
 ---
 
 Hai scelto un cibo migliore per il tuo cane e vorresti passarci subito. È un

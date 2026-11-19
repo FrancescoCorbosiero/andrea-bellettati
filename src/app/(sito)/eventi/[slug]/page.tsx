@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { DateTile, EventActions, EventMeta } from '@/components/events/EventCard';
+import { DateTile, EventActions, EventMeta, ReserveButton } from '@/components/events/EventCard';
 import { ArrowIcon } from '@/components/icons';
 import JsonLd from '@/components/seo/JsonLd';
 import { getEvent, getEvents, renderMarkdown } from '@/lib/content';
@@ -43,7 +43,7 @@ export default async function EventoPage(props: PageProps<'/eventi/[slug]'>) {
         eventAttendanceMode: online ? 'https://schema.org/OnlineEventAttendanceMode' : 'https://schema.org/OfflineEventAttendanceMode',
         location: online ? { '@type': 'VirtualLocation', url: absoluteUrl(`/eventi/${e.slug}`) } : { '@type': 'Place', name: e.locationLabel ?? 'Da definire' },
         organizer: { '@id': `${SITE_URL}/#andrea` },
-        ...(e.free ? { isAccessibleForFree: true, offers: { '@type': 'Offer', price: 0, priceCurrency: 'EUR', availability: 'https://schema.org/InStock', url: absoluteUrl(`/eventi/${e.slug}`) } } : {}),
+        ...(e.free ? { isAccessibleForFree: true, offers: { '@type': 'Offer', price: 0, priceCurrency: 'EUR', availability: 'https://schema.org/InStock', url: e.reserveUrl ?? absoluteUrl(`/eventi/${e.slug}`) } } : {}),
       }
     : null;
 
@@ -80,6 +80,15 @@ export default async function EventoPage(props: PageProps<'/eventi/[slug]'>) {
         <div className="wrap-narrow mt-10">
           <div className="prose-ab" dangerouslySetInnerHTML={{ __html: html }} />
           {e.collab && <p className="mt-8 text-[16px] text-ink-mute">In collaborazione con {e.collab}.</p>}
+          {e.status === 'upcoming' && (
+            <div className="slab slab-blush mt-10 flex flex-col items-start gap-4 !rounded-[22px] p-6 sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-[19px] font-[800] leading-tight tracking-[-0.02em] text-ink">
+                {e.free ? 'È gratuito, ti aspetto.' : 'Ti aspetto.'}
+                {e.date && <span className="mt-1 block text-[15.5px] font-[650] text-ink-soft">{eventLong(e.date)}</span>}
+              </p>
+              <ReserveButton event={e} className="btn btn-lg shrink-0" />
+            </div>
+          )}
         </div>
       </article>
 

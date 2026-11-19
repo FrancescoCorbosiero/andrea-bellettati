@@ -15,6 +15,8 @@ export type Article = {
   featured: boolean;
   status: 'published' | 'coming-soon';
   externalUrl?: string;
+  /** Slug dell'evento collegato. */
+  event?: string;
   body: string;
   minutes: number;
   words: number;
@@ -42,6 +44,7 @@ export type EventEntry = {
   collab?: string;
   tags: string[];
   reserveWaText?: string;
+  reserveUrl?: string;
   externalUrl?: string;
   internalUrl?: string;
   body: string;

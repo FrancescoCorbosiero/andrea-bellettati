@@ -4,6 +4,7 @@ date: 2026-03-10
 category: "Alimentazione"
 excerpt: "Ingredienti, percentuali, “carne fresca” e additivi: cosa guardare davvero prima di mettere un sacco nel carrello."
 coverAlt: "Locandina Etichette a 4 Zampe"
+hidden: true
 ---
 
 > **Bozza da completare con Andrea.** La traccia qui sotto riprende l'estratto già

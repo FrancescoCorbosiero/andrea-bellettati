@@ -96,15 +96,22 @@ status: "published"                # oppure "coming-soon" (card "In arrivo")
 featured: false                    # in evidenza in cima al blog
 externalUrl: "https://…"           # facoltativo: la card porta lì (es. Instagram)
 cover: "/foto/nome.jpg"            # facoltativo: foto in /public; senza, blocco colorato
+event: "barboncini"                # facoltativo: slug dell'evento collegato, in evidenza in testa all'articolo
+hidden: true                       # facoltativo: articolo fuori dal sito (pagina, elenchi, sitemap, RSS); il file resta
 ```
+
+In fondo a ogni articolo compare da solo il prossimo evento in programma.
 
 Eventi in `src/content/eventi/`: `title`, `excerpt`, `date` (con ora e fuso, es.
 `2026-02-11T21:00:00+01:00`) oppure `whenLabel` ("Su richiesta"), `status`
 (`upcoming`, `coming-soon`, `on-request`, `past`), `statusLabel`, `duration`,
-`locationLabel`, `collab`, `tags`, `reserveWaText` (testo WhatsApp di "Riserva il
-tuo posto"), `externalUrl` / `internalUrl`. Un evento `upcoming` con la data
-passata diventa "già svolto" da solo; le pagine con le date si rigenerano ogni 12
-ore.
+`locationLabel`, `collab`, `tags`, `reserveUrl` (modulo d'iscrizione, es. Google
+Moduli: il pulsante diventa "Iscriviti gratis"), `reserveWaText` (testo WhatsApp di
+"Riserva il tuo posto", se non c'è `reserveUrl`), `externalUrl` / `internalUrl`.
+Un evento `upcoming` con la data passata diventa "già svolto" da solo; le pagine
+con le date si rigenerano ogni 12 ore. Finché un evento è in programma compare
+anche nel primo schermo della home, nella striscia sopra l'header delle altre
+pagine e in fondo agli articoli.
 
 ## Questionari ed email
 

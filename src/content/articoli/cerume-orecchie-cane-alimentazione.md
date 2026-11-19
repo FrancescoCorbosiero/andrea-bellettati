@@ -5,6 +5,7 @@ excerpt: "Orecchie sporche di frequente? A volte il problema non è solo locale:
 category: "Alimentazione"
 status: "published"
 placeholderLabel: "ALIMENTAZIONE"
+hidden: true
 ---
 
 Se ti ritrovi a pulire le orecchie del tuo cane ogni pochi giorni e il cerume

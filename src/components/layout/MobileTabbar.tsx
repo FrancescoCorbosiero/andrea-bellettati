@@ -4,14 +4,14 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect } from 'react';
 import { Tabbar, TabbarLink, ToolbarPane } from 'konsta/react';
-import { BookOpen, Compass, House, LayoutGrid, PawPrint } from 'lucide-react';
+import { BookOpen, CalendarDays, House, LayoutGrid, PawPrint } from 'lucide-react';
 import { useApp } from '@/components/app/AppProvider';
 import { CONSULENZA_HREF } from '@/lib/site';
 
 /**
  * Telefono e tablet: la barra di un'app, di vetro, sempre a portata di
- * pollice. Home, Approccio, Blog, il questionario al centro (si apre come
- * foglio sopra la pagina) e "Menu" per tutto il resto.
+ * pollice. Home, Eventi, il questionario al centro (si apre come foglio
+ * sopra la pagina), Blog e "Menu" per tutto il resto (Approccio compreso).
  */
 export default function MobileTabbar() {
   const pathname = usePathname();
@@ -45,10 +45,10 @@ export default function MobileTabbar() {
         />
         <TabbarLink
           component={Link}
-          linkProps={{ href: '/approccio' }}
-          active={nothingOpen && on('/approccio')}
-          icon={<Compass size={24} strokeWidth={1.9} aria-hidden />}
-          label="Approccio"
+          linkProps={{ href: '/eventi' }}
+          active={nothingOpen && on('/eventi')}
+          icon={<CalendarDays size={24} strokeWidth={1.9} aria-hidden />}
+          label="Eventi"
         />
         <TabbarLink
           linkProps={{ href: CONSULENZA_HREF }}

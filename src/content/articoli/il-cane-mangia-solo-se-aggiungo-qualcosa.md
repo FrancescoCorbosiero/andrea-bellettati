@@ -5,6 +5,7 @@ excerpt: "Quando la ciotola diventa una trattativa: cosa c'è dietro questa abit
 category: "Comportamento"
 status: "published"
 placeholderLabel: "COMPORTAMENTO"
+hidden: true
 ---
 
 Inizia con un po' di formaggio "solo per invogliarlo". Poi ci vuole il

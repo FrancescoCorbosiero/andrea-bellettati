@@ -1,7 +1,9 @@
 /** Date in italiano, ancorate al fuso Europe/Rome (l'orario non slitta col fuso del server). */
 const TZ = 'Europe/Rome';
 
-const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+/** Prima lettera maiuscola ("martedì" → "Martedì"). */
+export const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+const cap = capitalize;
 
 /** "11" */
 export function eventDay(d: Date): string {
